@@ -1,4 +1,25 @@
 
+(t)fri apr 24 20
+(u)Flourish
+(p)400
+(e)🐛🆕|bug, enhancement
+(*)Cloning and stable mutagen now properly copy blood DNA, fingerprints, and genetic effects. The advanced genetic analysis option on the cloning computer toggles copying active genetic effects (yes, that includes mutantraces).
+(u)Tarmunora
+(p)395
+(e)🐛|bug
+(+)Fixed issue where guns treated you as if you were always slightly drunk for the purposes of aiming.
+(u)AwkwardDryad
+(p)385
+(e)🎨|sprites
+(*)Added the Double-Part and Drill hairstyles.
+(u)UrsulaMajor
+(p)394
+(e)🆕|enhancement
+(+)You can now ladle soup back into the soup pot, if you want. Soups also now drop their bowls when eaten.
+(u)Erinexx
+(p)406
+(e)🆕🎨|enhancement, sprites
+(*)Glowsticks are now colored. You can buy their colored variants from QM. You can also change csaber blade colors by unscrewing them and swapping out the glowstick inside!
 (t)thu apr 23 20
 (u)Erinexx
 (p)335
