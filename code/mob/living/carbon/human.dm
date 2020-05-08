@@ -695,6 +695,7 @@
 
 		if (src.getStatusDuration("burning") > 400)
 			src.unlock_medal("Black and Blue", 1)
+		JOB_XP(src, "Clown", 10)
 
 	ticker.mode.check_win()
 
@@ -807,58 +808,59 @@
 
 	return
 
+#define BASE_SPEED 1.3
+#define RUN_SCALING 0.2
+
+
 /mob/living/carbon/human/movement_delay(var/atom/move_target = 0, running = 0)
-	var/baseSpeed = 1.3 // 1.2 run, 2 walk, 0.75 sprint were base
-	var/runScaling = 0.2 //change this to affect how powerful sprinting is, ie what percent of extra tally is maintained over the minSpeed
+	. = BASE_SPEED
 
-	var/tally = baseSpeed
+	. += movement_delay_modifier
 
-	tally += movement_delay_modifier
+
+	var/multiplier = 1 // applied before running multiplier
+	var/health_deficiency_adjustment = 0
+	var/maximum_slowdown = 100 // applied before pulling checks
+
+	var/datum/movement_modifier/modifier
+	for(var/type_or_instance in src.movement_modifiers)
+		if (ispath(type_or_instance))
+			modifier = movement_modifier_instances[type_or_instance]
+		else
+			modifier = type_or_instance
+		if (modifier.ask_proc)
+			var/list/r = modifier.modifiers(src, move_target, running)
+			. += r[1]
+			multiplier *= r[2]
+		. += modifier.additive_slowdown
+		multiplier += modifier.multiplicative_slowdown
+		health_deficiency_adjustment += modifier.health_deficiency_adjustment
+		if (modifier.maximum_slowdown < maximum_slowdown)
+			maximum_slowdown = modifier.maximum_slowdown
 
 	if (m_intent == "walk")
-		tally += 0.8
+		. += 0.8
+
 	if (src.nodamage)
-		return tally
-
-	if (src.getStatusDuration("staggered") || src.hasStatus("blocking"))
-		tally += 0.5
-		//sprint disable handled in input.dm process_move, so that stamina isn't used up when running is impossible
-
-	var/datum/statusEffect/slowed/slowedStatus = src.hasStatus("slowed")
-	if (istype(slowedStatus))
-		tally += slowedStatus.howMuch
-
-	if (src.getStatusDuration("disorient"))
-		tally += 9
-
-	if (src.getStatusDuration("hastened"))
-		tally -= 0.8
+		return .
 
 	if (src.drowsyness > 0)
-		tally += 6
+		. += 6
 
+	var/health_deficiency = (src.max_health - src.health) + health_deficiency_adjustment // cogwerks // let's treat this like pain
 
-	var/health_deficiency = (src.max_health - src.health) // cogwerks // let's treat this like pain
-	if (src.reagents)
-		if (src.reagents.has_reagent("juggernaut"))
-			health_deficiency -= 65
-		if (src.reagents.has_reagent("morphine"))
-			health_deficiency -= 50
-		if (src.reagents.has_reagent("salicylic_acid"))
-			health_deficiency -= 25
-	if (src.hasStatus("gang_drug"))
-		health_deficiency -= 50
-	if (health_deficiency >= 30) tally += (health_deficiency / 25)
+	if (health_deficiency >= 30)
+		. += (health_deficiency / 25)
 
 	var/in_wheelchair = 0
 	if (src.buckled)
 		if (istype(src.buckled, /obj/stool/chair/comfy/wheelchair))
 			if (!src.l_hand)
 				in_wheelchair++
-				tally *= 0.66
+				. *= 0.66
 			if (!src.r_hand)
 				in_wheelchair++
-				tally *= 0.66
+				. *= 0.66
 	var/missing_legs = 0
 	var/missing_arms = 0
 	if (src.limbs)
@@ -873,60 +875,36 @@
 		if (0)
 			if (!in_wheelchair && src.shoes)
 				if (src.shoes.chained)
-					tally += 15
+					. += 15
 				else if (src.shoes.speedy) // miner boots, split off from the suit
-					tally *= 0.5
+					. *= 0.5
 		if (1)
 			if (!in_wheelchair || (in_wheelchair && missing_arms))
-				tally += 7
+				. += 7
 			else if (in_wheelchair < 2)
-				tally += 3
+				. += 3
 			if (src.shoes && src.shoes.speedy) // miner boots, split off from the suit
-				tally *= 0.75 //less effect if there's only one i guess
+				. *= 0.75 //less effect if there's only one i guess
 		if (2)
 			if (!in_wheelchair)
-				tally += 15
+				. += 15
 			else if (in_wheelchair < 2)
-				tally += 7
+				. += 7
 			switch(missing_arms)
 				if (1)
-					tally += 15 //can't pull yourself along too well
+					. += 15 //can't pull yourself along too well
 				if (2)
-					tally += 300 //haha good luck
+					. += 300 //haha good luck
 
-	if (src.mutantrace)
-		tally += src.mutantrace.movement_delay()
-	if (src.bioHolder)
-		if (src.bioHolder.HasEffect("fat"))
-			tally += 1.5
-		if (src.bodytemperature < src.base_body_temp - (src.temp_tolerance * 2) && !src.is_cold_resistant())
-			tally += min( ((((src.base_body_temp - (src.temp_tolerance * 2)) - src.bodytemperature) / 10)), 3)//10)
-	//if (src.traitHolder)
-		//if (src.traitHolder.hasTrait("training_security"))
-		//	tally -= 0.2
-
-	if (src.limbs)
-		if (src.limbs.l_leg)
-			tally -= src.limbs.l_leg.effect_modifier
-		if (src.limbs.r_leg)
-			tally -= src.limbs.r_leg.effect_modifier
-
-	for (var/obj/item/grab/G in src.equipped_list(check_for_magtractor=0))
-		var/mob/living/carbon/human/H = G.affecting
-		if (isnull(H)) continue //ZeWaka: If we have a null affecting, ex. someone jumped in lava when we were grabbing them
-		if (G.state == 0)
-			if (get_dist(src,H) > 0 && get_dist(move_target,H) > 0) //pasted into living.dm pull slow as well (consider merge somehow)
-				if(istype(H) && H.intent != INTENT_HELP && H.lying)
-					tally *= max(H.p_class, 1)
-		else
-			tally *= max(H.p_class, 1)
+	if (src.bodytemperature < src.base_body_temp - (src.temp_tolerance * 2) && !src.is_cold_resistant())
+		. += min( ((((src.base_body_temp - (src.temp_tolerance * 2)) - src.bodytemperature) / 10)), 3)
 
 	var/has_fluid_move_gear = 0
 	var/has_space_move_gear = 0
 
-	for(var/atom in src.get_equipped_items())
+	for(var/atom in src.get_equipped_items()) // maybe replace this with items adding movement modifiers as well?
 		var/obj/item/I = atom
-		tally += I.getProperty("movespeed")
+		. += I.getProperty("movespeed")
 		has_fluid_move_gear += I.getProperty("negate_fluid_speed_penalty")
 		has_space_move_gear += I.getProperty("space_movespeed")
 
@@ -934,74 +912,46 @@
 	if (has_space_move_gear)
 		var/turf/T = get_turf(src)
 		if (!(T.turf_flags & CAN_BE_SPACE_SAMPLE))
-			tally += has_space_move_gear
+			. += has_space_move_gear
 
 	if (!(src.mutantrace && src.mutantrace.aquatic)) //aquatic race suffers no penalty on dry land OR in fluid
 		var/turf/T = get_turf(src)
 		if (T && has_fluid_move_gear)		//add tally : we are on dry land and have gear on
 			if (!T.active_liquid && !(T.turf_flags & FLUID_MOVE))
-				tally += has_fluid_move_gear
+				. += has_fluid_move_gear
 		else if (T && !has_fluid_move_gear) 	//add tally : we are in fluid but have no gear
 			if (T.active_liquid)
-				tally += T.active_liquid.movement_speed_mod
+				. += T.active_liquid.movement_speed_mod
 			else if (istype(T,/turf/space/fluid))
-				tally += 4
+				. += 4
 
-	if (src.reagents)
-		if (src.reagents.has_reagent("energydrink") || src.reagents.has_reagent("methamphetamine"))
-			if (src.getStatusDuration("disorient")) //disorient still works on meth dudes!
-				tally *= 0.85
+	. = min(., maximum_slowdown)
+
+	. *= pull_speed_modifier(move_target)
+
+	if (!(src.is_hulk() || (src.bioHolder && src.bioHolder.HasEffect("strong"))))
+		if (src.pushing && (src.pulling != src.pushing))
+			. *= max (src.pushing.p_class, 1)
+
+		for (var/obj/item/grab/G in src.equipped_list(check_for_magtractor=0))
+			var/mob/M = G.affecting
+			if (isnull(M)) continue //ZeWaka: If we have a null affecting, ex. someone jumped in lava when we were grabbing them
+			if (G.state == 0)
+				if (get_dist(src,M) > 0 && get_dist(move_target,M) > 0) //pasted into living.dm pull slow as well (consider merge somehow)
+					if(ismob(M) && M.lying)
+						. *= max(M.p_class, 1)
 			else
-				tally *= 0.5
+				. *= max(M.p_class, 1)
 
-	if (src.reagents)
-		if (src.reagents.has_reagent("cocktail_triple"))
-			if (tally > 9)
-				tally /= 3
-			else
-				tally -= 6
-
-	if (src.bioHolder && src.bioHolder.HasEffect("revenant"))
-		tally = max(tally, 3)
-
-	/*	speed adjustment from pulling now handled in /mob/living/proc/pull_speed_modifier in living.dm, since it applies to both humans and cyborgs
-	if (src.pulling && istype(src.pulling, /atom/movable) && !(src.is_hulk() || (src.bioHolder && src.bioHolder.HasEffect("strong"))))
-		var/atom/movable/M = src.pulling
-		// hi grayshift sorry grayshift
-		if(pull_slowing)
-			tally *= max(M.p_class, 1)
-		else
-			if(ishuman(M))
-				// if they're not on help intent and also not standing, THEN we might deign to use the p_class
-				var/mob/living/carbon/human/H = M
-				if(istype(H) && H.intent != INTENT_HELP && H.lying)
-					tally *= max(H.p_class, 1)
-			else if(istype(M, /obj/storage))
-				// if the storage object contains mobs, use its p_class (updated within storage to reflect containing mobs or not)
-				var/contains_unwilling_mobs = 0
-				var/obj/storage/S = M
-				for(var/mob/B in M.contents)
-					if(B.intent != INTENT_HELP && B.lying)
-						contains_unwilling_mobs = 1
-						break
-				if(contains_unwilling_mobs)
-					tally *= max(S.p_class, 1)
-			else if(istype(M,/obj/machinery/nuclearbomb)) //can't speed off super fast with the nuke, it's heavy
-				tally *= max(M.p_class, 1)
-			// else, ignore p_class
-			*/
-	tally *= pull_speed_modifier(move_target)
-
-	if (src.pushing && !(src.is_hulk() || (src.bioHolder && src.bioHolder.HasEffect("strong"))))
-		if (src.pulling != src.pushing)
-			tally *= max (src.pushing.p_class, 1)
+	. *= multiplier
 
 	if (running)
-		var/minSpeed = (0.75 - runScaling * baseSpeed) / (1 - runScaling) // ensures sprinting with 1.2 tally drops it to 0.75
-		if (pulling) minSpeed = baseSpeed // not so fast, fucko
-		tally = min(tally, minSpeed + (tally - minSpeed) * runScaling) // i don't know what I'm doing, help
+		var/minSpeed = (0.75 - RUN_SCALING * BASE_SPEED) / (1 - RUN_SCALING) // ensures sprinting with 1.2 tally drops it to 0.75
+		if (pulling) minSpeed = BASE_SPEED // not so fast, fucko
+		. = min(., minSpeed + (. - minSpeed) * RUN_SCALING) // i don't know what I'm doing, help
 
-	return tally
+#undef BASE_SPEED
+#undef RUN_SCALING
 
 /mob/living/carbon/human/Stat()
 	..()
@@ -1506,9 +1456,9 @@
 				return
 			*/
 
-			if (gloves && (gloves.can_be_charged && gloves.stunready && gloves.uses >= 1))
-				M.stun_glove_attack(src)
-				return
+			//if (gloves && (gloves.can_be_charged && gloves.stunready && gloves.uses >= 1))
+			//	M.stun_glove_attack(src)
+			//	return
 
 			if (gloves && gloves.activeweapon)
 				gloves.special_attack(src)
@@ -3127,7 +3077,8 @@
 
 	for(var/slot in valid_slots)
 		var/obj/item/slot_item = src.get_slot(slot)
-		if(slot_item?.flags & HAS_EQUIP_CLICK) return slot_item.equipment_click(src, target, params, location, control, origParams, slot)
+		if(slot_item?.flags & HAS_EQUIP_CLICK && slot_item.equipment_click(src, target, params, location, control, origParams, slot))
+			return
 
 	if (src.lying)
 		if (src.limbs.r_leg || src.limbs.l_leg) //legless people should still be able to interact

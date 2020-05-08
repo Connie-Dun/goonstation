@@ -386,7 +386,8 @@
 				return
 		else
 			var/reach = can_reach(src, target)
-
+			if (src.pre_attack_modify())
+				equipped = src.equipped() //might have changed from successful modify
 			if (reach || (equipped && equipped.special) || (equipped && (equipped.flags & EXTRADELAY))) //Fuck you, magic number prickjerk //MBC : added bit to get weapon_attack->pixelaction to work for itemspecial
 				if (use_delay)
 					src.next_click = world.time + (equipped ? equipped.click_delay : src.click_delay)
@@ -430,6 +431,14 @@
 
 		if (src.next_click >= world.time) // since some of these attack functions go wild with modifying next_click, we implement the clicking grace window with a penalty instead of changing how next_click is set
 			src.next_click += grace_penalty
+
+/mob/living/proc/pre_attack_modify()
+	.=0
+	var/obj/item/grab/block/G = src.check_block()
+	if (G)
+		qdel(G)
+		.= 1
+
 
 /mob/living/update_cursor()
 	..()
@@ -1145,6 +1154,7 @@ var/global/icon/human_static_base_idiocy_bullshit_crap = icon('icons/mob/human.d
 			if (src.bioHolder && src.bioHolder.HasEffect("clumsy") && prob(50))
 				message = "<B>[src]</B> tries to hand [thing] to [M], but [src] drops it!"
 				thing.set_loc(src.loc)
+				JOB_XP(src, "Clown", 2)
 			else if (M.bioHolder && M.bioHolder.HasEffect("clumsy") && prob(50))
 				message = "<B>[src]</B> tries to hand [thing] to [M], but [M] drops it!"
 				thing.set_loc(M.loc)
@@ -1159,34 +1169,31 @@ var/global/icon/human_static_base_idiocy_bullshit_crap = icon('icons/mob/human.d
 	src.visible_message("<span class='subtle'>[message]</span>")
 
 /mob/living/proc/pull_speed_modifier(var/atom/move_target = 0)
-	var/mod = 1
+	. = 1
 	if (src.pulling && istype(src.pulling, /atom/movable) && !(src.is_hulk() || (src.bioHolder && src.bioHolder.HasEffect("strong"))))
-		var/atom/movable/M = src.pulling
+		var/atom/movable/A = src.pulling
 		// hi grayshift sorry grayshift
-		if (get_dist(src,M) > 0 && get_dist(move_target,M) > 0) //i think this is mbc dist stuff for if we're actually stepping away and pulling the thing or not?
+		if (get_dist(src,A) > 0 && get_dist(move_target,A) > 0) //i think this is mbc dist stuff for if we're actually stepping away and pulling the thing or not?
 			if(pull_slowing)
-				mod *= max(M.p_class, 1)
+				. *= max(A.p_class, 1)
 			else
-				if(istype(M,/obj/machinery/nuclearbomb)) //can't speed off super fast with the nuke, it's heavy
-					mod *= max(M.p_class, 1)
+				if(istype(A,/obj/machinery/nuclearbomb)) //can't speed off super fast with the nuke, it's heavy
+					. *= max(A.p_class, 1)
 				// else, ignore p_class*/
 				else if (ishuman(src))
-					if(ishuman(M))
-						// if they're not on help intent and also not standing, THEN we might deign to use the p_class
-						var/mob/living/carbon/human/H = M
-						if(istype(H) && H.intent != INTENT_HELP && H.lying)
-							mod *= max(H.p_class, 1)
-					else if(istype(M, /obj/storage))
+					if(ismob(A))
+						var/mob/M = A
+						//if they're lying, pull em slower, unless you have a gang and they are in your gang.
+						if(M.lying)
+							if (src.mind?.gang && (src.mind.gang == M.mind?.gang))
+								. *= 1		//do nothing
+							else
+								. *= max(A.p_class, 1)
+					else if(istype(A, /obj/storage))
 						// if the storage object contains mobs, use its p_class (updated within storage to reflect containing mobs or not)
-						var/contains_unwilling_mobs = 0
-						var/obj/storage/S = M
-						for(var/mob/B in M.contents)
-							if(B.intent != INTENT_HELP && B.lying)
-								contains_unwilling_mobs = 1
-								break
-						if(contains_unwilling_mobs)
-							mod *= max(S.p_class, 1)
-	return mod
+						if (locate(/mob) in A.contents)
+							. *= max(A.p_class,1)
+	return .
 
 //Phyvo: Resist generalization. For when humans can break or remove shackles/cuffs, see daughter proc in humans.dm
 /mob/living/proc/resist()
@@ -1227,9 +1234,8 @@ var/global/icon/human_static_base_idiocy_bullshit_crap = icon('icons/mob/human.d
 					src.update_cursor()
 			else
 				if (!src.getStatusDuration("burning"))
-
 					if (src.grab_block())
-						src.last_resist = world.time + 5
+						src.last_resist = world.time + (COMBAT_CLICK_DELAY/2)
 					else
 						for (var/mob/O in AIviewers(src, null))
 							O.show_message(text("<span class='alert'><B>[] resists!</B></span>", src), 1, group = "resist")
