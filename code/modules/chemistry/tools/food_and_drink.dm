@@ -73,7 +73,6 @@
 			boutput(M, "<span class='alert'>Your injuries are too severe to heal by nourishment alone!</span>")
 		else
 			M.HealDamage("All", healing, healing)
-			M.updatehealth()
 
 /* ================================================ */
 /* -------------------- Snacks -------------------- */
@@ -549,11 +548,9 @@
 
 				F.group.reagents.skip_next_update = 1
 				F.group.update_amt_per_tile()
-				boutput(user, "<span class='notice'>You fill [src] with [F.group.amt_per_tile] units of [target].</span>")
-				F.group.reagents.trans_to_direct(src.reagents,F.group.amt_per_tile)
-				if (!F.group) return
-				F.group.contained_amt = F.group.reagents.total_volume
-				F.group.remove(F,0,F.group.updating)
+				var/amt = min(F.group.amt_per_tile, reagents.maximum_volume - reagents.total_volume)
+				boutput(user, "<span class='notice'>You fill [src] with [amt] units of [target].</span>")
+				F.group.drain(F, amt / F.group.amt_per_tile, src) // drain uses weird units
 
 			else //trans_to to the FLOOR of the liquid, not the liquid itself. will call trans_to() for turf which has a little bit that handles turf application -> fluids
 				var/turf/T = get_turf(F)
@@ -788,7 +785,6 @@
 			user.visible_message("<span class='alert'><b>[user] slashes [his_or_her(user)] own throat with [src]!</b></span>")
 			blood_slash(user, 25)
 			user.TakeDamage("head", 150, 0, 0, DAMAGE_CUT)
-			user.updatehealth()
 			SPAWN_DBG(50 SECONDS)
 				if (user && !isdead(user))
 					user.suiciding = 0
@@ -1136,7 +1132,8 @@
 		var/mob/living/carbon/human/H = user
 		var/list/choices = list()
 
-		if ((H.sims && H.sims.getValue("Bladder") <= 65) || (!H.sims && H.urine >= 2))
+		var/bladder = H.sims?.getValue("Bladder")
+		if ((!isnull(bladder) && (bladder <= 65)) || (isnull(bladder) && (H.urine >= 2)))
 			choices += "pee in it"
 		if (src.in_glass)
 			choices += "remove [src.in_glass]"
@@ -1157,7 +1154,8 @@
 		var/obj/item/eat_thing
 
 		if (selection == "pee in it")
-			if ((H.sims && H.sims.getValue("Bladder") <= 65) || (!H.sims && H.urine >= 2))
+			bladder = H.sims?.getValue("Bladder")
+			if ((!isnull(bladder) && (bladder <= 65)) || (isnull(bladder) && (H.urine >= 2)))
 				H.visible_message("<span class='alert'><B>[H] pees in [src]!</B></span>")
 				playsound(get_turf(H), "sound/misc/pourdrink.ogg", 50, 1)
 				if (!H.sims)
@@ -1538,7 +1536,6 @@
 			logTheThing("combat", user, M, "smashes [src] over %target%'s head! ")
 		M.TakeDamageAccountArmor("head", force, 0, 0, DAMAGE_BLUNT)
 		M.changeStatus("weakened", 2 SECONDS)
-		M.updatehealth()
 		playsound(M, "sound/impact_sounds/Glass_Shatter_[rand(1,3)].ogg", 100, 1)
 		var/obj/O = unpool(/obj/item/raw_material/shard/glass)
 		O.set_loc(get_turf(M))

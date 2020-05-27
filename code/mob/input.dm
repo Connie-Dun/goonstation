@@ -78,6 +78,8 @@ mob
 				src.glide_size = glide
 				next_move = world.time + (running ? 0.5 : 1.5)
 				return (running ? 0.5 : 1.5)
+			if(ishuman(src)) // ugly hack pls replace src.canmove by direct GET_MOB_PROPERTY() call once available
+				H.update_canmove()
 			if (src.canmove)
 				if (src.restrained())
 					for(var/mob/M in range(src, 1))
@@ -171,10 +173,6 @@ mob
 							last_move_trigger = ticker ? ticker.round_elapsed_ticks : 0 //Wire note: Fix for Cannot read null.round_elapsed_ticks
 							deliver_move_trigger(m_intent)
 
-						if (running)
-							src.remove_stamina(STAMINA_COST_SPRINT)
-							if (src.pulling)
-								src.remove_stamina(STAMINA_COST_SPRINT-1)
 
 						src.glide_size = glide // dumb hack: some Move() code needs glide_size to be set early in order to adjust "following" objects
 						src.animate_movement = SLIDE_STEPS
@@ -216,6 +214,11 @@ mob
 									delay += G.assailant.p_class
 
 						if (src.loc != old_loc)
+							if (running)
+								src.remove_stamina(STAMINA_COST_SPRINT)
+								if (src.pulling)
+									src.remove_stamina(STAMINA_COST_SPRINT-1)
+
 							var/list/pulling = list()
 							if (src.pulling)
 								if (get_dist(old_loc, src.pulling) > 1 || src.pulling == src) // fucks sake

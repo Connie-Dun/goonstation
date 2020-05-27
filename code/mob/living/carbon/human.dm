@@ -7,9 +7,10 @@
 	icon_state = "blank"
 	static_type_override = /mob/living/carbon/human
 	throw_range = 4
-	p_class = 2 // 2 while standing, 3 while resting (see update_icon.dm for the place where this change happens)
+	p_class = 1.5 // 1.5 while standing, 2.5 while resting (see update_icon.dm for the place where this change happens)
 
 	event_handler_flags = USE_HASENTERED | USE_FLUID_ENTER | USE_CANPASS
+	mob_flags = IGNORE_SHIFT_CLICK_MODIFIER
 
 	var/dump_contents_chance = 20
 
@@ -167,6 +168,9 @@
 
 	var/icon/flat_icon = null
 
+	var/next_step_delay = 0
+	var/next_sprint_boost = 0
+
 /mob/living/carbon/human/New()
 	default_static_icon = human_static_base_idiocy_bullshit_crap // FUCK
 	. = ..()
@@ -204,6 +208,8 @@
 	arrestIconsAll.Add(arrestIcon)
 
 	src.organHolder = new(src)
+
+	src.ensure_bp_list()
 
 	if (!bioHolder)
 		bioHolder = new/datum/bioHolder(src)
@@ -466,9 +472,6 @@
 				src.holder.set_body_icon_dirty()
 			return
 		return 0
-
-/mob/living/carbon/human/proc/is_changeling()
-	return ischangeling(src)
 
 /mob/living/carbon/human/proc/is_vampire()
 	return get_ability_holder(/datum/abilityHolder/vampire)
@@ -733,7 +736,7 @@
 		return
 
 	var/turf/reappear_turf = get_turf(src)
-	if (!antag_removal)
+	if (!antag_removal && !isrestrictedz(reappear_turf.z))
 		for (var/turf/simulated/floor/S in orange(7))
 			if (S == reappear_turf) continue
 			if (prob(50)) //Try to appear on a turf other than the one we die on.
@@ -811,8 +814,8 @@
 
 	return
 
-#define BASE_SPEED 1.3
-#define RUN_SCALING 0.2
+#define BASE_SPEED 1.65
+#define RUN_SCALING 0.12
 
 
 /mob/living/carbon/human/movement_delay(var/atom/move_target = 0, running = 0)
@@ -858,12 +861,12 @@
 		return .
 
 	if (src.drowsyness > 0)
-		. += 6
+		. += 5
 
 	var/health_deficiency = (src.max_health - src.health) + health_deficiency_adjustment // cogwerks // let's treat this like pain
 
 	if (health_deficiency >= 30)
-		. += (health_deficiency / 25)
+		. += (health_deficiency / 35)
 
 	var/missing_legs = 0
 	var/missing_arms = 0
@@ -878,12 +881,12 @@
 		missing_legs = 2
 
 	if (missing_legs == 2)
-		. += 15 - ((2-missing_arms) * 2) // each missing leg adds 7.5 of movement delay. Each functional arm reduces this by 2.
+		. += 14 - ((2-missing_arms) * 2) // each missing leg adds 7 of movement delay. Each functional arm reduces this by 2.
 	else
-		. += 7.5*missing_legs
+		. += 7*missing_legs
 
 	if (src.bodytemperature < src.base_body_temp - (src.temp_tolerance * 2) && !src.is_cold_resistant())
-		. += min( ((((src.base_body_temp - (src.temp_tolerance * 2)) - src.bodytemperature) / 10)), 3)
+		. += min( (((src.base_body_temp - (src.temp_tolerance * 2)) - src.bodytemperature) / 30), 2.2)
 
 	var/turf/T = get_turf(src)
 
@@ -899,7 +902,7 @@
 				if (T.active_liquid)
 					. += T.active_liquid.movement_speed_mod
 				else if (istype(T,/turf/space/fluid))
-					. += 4
+					. += 3
 
 	. = min(., maximum_slowdown)
 
@@ -924,10 +927,35 @@
 
 	. *= multiplier
 
+	if (next_step_delay)
+		. += next_step_delay
+		next_step_delay = 0
+
 	if (running)
-		var/minSpeed = (0.75 - RUN_SCALING * BASE_SPEED) / (1 - RUN_SCALING) // ensures sprinting with 1.2 tally drops it to 0.75
+		var/minSpeed = (1.0- RUN_SCALING * BASE_SPEED) / (1 - RUN_SCALING) // ensures sprinting with 1.2 tally drops it to 0.75
 		if (pulling) minSpeed = BASE_SPEED // not so fast, fucko
 		. = min(., minSpeed + (. - minSpeed) * RUN_SCALING) // i don't know what I'm doing, help
+
+/mob/living/carbon/human/proc/start_sprint()
+	if (special_sprint && src.client)
+		if (special_sprint & SPRINT_BAT)
+			spell_batpoof(src, cloak = 0)
+		if (special_sprint & SPRINT_BAT_CLOAKED)
+			spell_batpoof(src, cloak = 1)
+		if (special_sprint & SPRINT_SNIPER)
+			begin_sniping()
+	else
+		if (!next_step_delay && world.time >= next_sprint_boost)
+			if (src.getStatusDuration("staggered") < 1 && !src.hasStatus("blocking"))
+				if (!hasStatus(list("stunned", "paralysis", "weakened")))
+					sprint_particle(src)
+
+					next_step_delay = max(src.next_move - world.time,0) //slows us on the following step by the amount of movement we just skipped over with our instant-step
+					src.next_move = world.time
+					src.attempt_move()
+					next_sprint_boost = world.time + max(src.next_move - world.time,BASE_SPEED) * 2
+
+					playsound(src.loc,"sound/effects/sprint_puff.ogg", 25, 1)
 
 #undef BASE_SPEED
 #undef RUN_SCALING
@@ -946,7 +974,7 @@
 				// else, ignore p_class*/
 				if(ismob(A))
 					var/mob/M = A
-					//if they're lying, pull em slower, unless you have a gang and they are in your gang.
+					//if they're lying, pull em slower, unless you have anext_move gang and they are in your gang.
 					if(M.lying)
 						if (src.mind?.gang && (src.mind.gang == M.mind?.gang))
 							. *= 1		//do nothing
@@ -1034,23 +1062,12 @@
 
 		//lol
 		if ("SHIFT")//bEGIN A SPRINT
-			if (special_sprint && src.client && !src.client.tg_controls)
-				if (special_sprint & SPRINT_BAT)
-					spell_batpoof(src, cloak = 0)
-				if (special_sprint & SPRINT_BAT_CLOAKED)
-					spell_batpoof(src, cloak = 1)
-				if (special_sprint & SPRINT_SNIPER)
-					begin_sniping()
+			if (!src.client.tg_controls)
+				start_sprint()
 			//else //indicate i am sprinting pls
 		if ("SPACE")
-			if (special_sprint && src.client && src.client.tg_controls)
-				if (special_sprint & SPRINT_BAT)
-					spell_batpoof(src, cloak = 0)
-				if (special_sprint & SPRINT_BAT_CLOAKED)
-					spell_batpoof(src, cloak = 1)
-				if (special_sprint & SPRINT_SNIPER)
-					begin_sniping()
-			//else //indicate i am sprinting pls
+			if (src.client.tg_controls)
+				start_sprint()
 		else
 			return ..()
 
@@ -1253,7 +1270,6 @@
 
 			temp.take_damage((istype(O, /obj/newmeteor/small) ? max(15-reduction,0) : max(25-reduction,0)), max(20-reduction,0))
 			src.UpdateDamageIcon()
-		src.updatehealth()
 	else if (prob(20))
 		src.gib()
 
@@ -1558,13 +1574,18 @@
 /mob/living/carbon/human/Topic(href, href_list)
 	if (istype(usr.loc,/obj/dummy/spell_invis/) || isghostdrone(usr))
 		return
-	if (!usr.stat && usr.canmove && !usr.restrained() && in_range(src, usr) && ticker && usr.can_strip(src))
+	var/canmove_or_pinning = usr.canmove
+	for (var/obj/item/grab/G in usr.equipped_list(check_for_magtractor = 0))
+		if (G.state == GRAB_PIN)
+			canmove_or_pinning = 1
+
+	if (!usr.stat && canmove_or_pinning && !usr.restrained() && in_range(src, usr) && ticker && usr.can_strip(src))
 		if (href_list["slot"] == "handcuff")
 			actions.start(new/datum/action/bar/icon/handcuffRemovalOther(src), usr)
 		else if (href_list["slot"] == "internal")
 			actions.start(new/datum/action/bar/icon/internalsOther(src), usr)
 		else if (href_list["item"])
-			actions.start(new/datum/action/bar/icon/otherItem(usr, src, usr.equipped(), text2num(href_list["slot"])) , usr)
+			actions.start(new/datum/action/bar/icon/otherItem(usr, src, usr.equipped(), text2num(href_list["slot"]), 0, href_list["item"] == "pockets") , usr)
 
 /* ----------------------------------------------------------------------------------------------------------------- */
 
@@ -2691,7 +2712,6 @@
 					src.throw_at(targetTurf, 200, 4)
 	shock_cyberheart(shock_damage)
 	TakeDamage(zone, 0, shock_damage, 0, DAMAGE_BURN)
-	src.updatehealth()
 	boutput(src, "<span class='alert'><B>You feel a [wattage > 7500 ? "powerful" : "slight"] shock course through your body!</B></span>")
 	src.unlock_medal("HIGH VOLTAGE", 1)
 	src.Virus_ShockCure(min(wattage / 500, 100))
@@ -2767,7 +2787,7 @@
 
 	if (src.hasStatus("handcuffed"))
 		if (ishuman(src))
-			if (src.is_changeling())
+			if (ischangeling(src))
 				boutput(src, "<span class='notice'>You briefly shrink your hands to remove your handcuffs.</span>")
 				src.handcuffs.drop_handcuffs(src)
 				return
