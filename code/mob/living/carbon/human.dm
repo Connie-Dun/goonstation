@@ -170,6 +170,7 @@
 
 	var/next_step_delay = 0
 	var/next_sprint_boost = 0
+	var/sustained_moves = 0
 
 /mob/living/carbon/human/New()
 	default_static_icon = human_static_base_idiocy_bullshit_crap // FUCK
@@ -189,7 +190,7 @@
 	src.zone_sel = new(src)
 	src.attach_hud(zone_sel)
 	src.stamina_bar = new(src)
-	hud.add_object(src.stamina_bar, HUD_LAYER+1, "EAST-1, NORTH")
+	hud.add_object(src.stamina_bar, initial(src.stamina_bar.layer), "EAST-1, NORTH")
 
 	if (global_sims_mode) // IF YOU ARE HERE TO DISABLE SIMS MODE, DO NOT TOUCH THIS. LOOK IN GLOBAL.DM
 #ifdef RP_MODE
@@ -261,15 +262,19 @@
 		holder = new_holder
 		if (holder) create()
 
-	dispose()
+	disposing()
 		if (l_arm)
 			l_arm.holder = null
+			l_arm?.bones?.donor = null
 		if (r_arm)
 			r_arm.holder = null
+			r_arm?.bones?.donor = null
 		if (l_leg)
 			l_leg.holder = null
+			l_leg?.bones?.donor = null
 		if (r_leg)
 			r_leg.holder = null
+			r_leg?.bones?.donor = null
 		holder = null
 		..()
 
@@ -279,7 +284,7 @@
 		if (!l_leg) l_leg = new /obj/item/parts/human_parts/leg/left(holder)
 		if (!r_leg) r_leg = new /obj/item/parts/human_parts/leg/right(holder)
 		SPAWN_DBG(5 SECONDS)
-			if (holder && !l_arm || !r_arm || !l_leg || !r_leg)
+			if (holder && (!l_arm || !r_arm || !l_leg || !r_leg))
 				logTheThing("debug", holder, null, "<B>SpyGuy/Limbs:</B> [src] is missing limbs after creation for some reason - recreating.")
 				create()
 				if (holder)
@@ -428,6 +433,7 @@
 					if (src.l_arm)
 						src.l_arm.delete()
 					src.l_arm = new /obj/item/parts/human_parts/arm/left/item(src.holder, new new_type(src.holder))
+				src.holder.organs["l_arm"] = src.l_arm
 				if (show_message)
 					src.holder.show_message("<span class='notice'><b>Your left arm [pick("magically ", "weirdly ", "suddenly ", "grodily ", "")]becomes [src.l_arm]!</b></span>")
 				if (user)
@@ -443,6 +449,7 @@
 					if (src.r_arm)
 						src.r_arm.delete()
 					src.r_arm = new /obj/item/parts/human_parts/arm/right/item(src.holder, new new_type(src.holder))
+				src.holder.organs["r_arm"] = src.r_arm
 				if (show_message)
 					src.holder.show_message("<span class='notice'><b>Your right arm [pick("magically ", "weirdly ", "suddenly ", "grodily ", "")]becomes [src.r_arm]!</b></span>")
 				if (user)
@@ -453,6 +460,7 @@
 				if (ispath(new_type, /obj/item/parts/human_parts/leg) || ispath(new_type, /obj/item/parts/robot_parts/leg))
 					qdel(src.l_leg)
 					src.l_leg = new new_type(src.holder)
+					src.holder.organs["l_leg"] = src.l_leg
 					if (show_message)
 						src.holder.show_message("<span class='notice'><b>Your left leg [pick("magically ", "weirdly ", "suddenly ", "grodily ", "")]becomes [src.l_leg]!</b></span>")
 					if (user)
@@ -463,6 +471,7 @@
 				if (ispath(new_type, /obj/item/parts/human_parts/leg) || ispath(new_type, /obj/item/parts/robot_parts/leg))
 					qdel(src.r_leg)
 					src.r_leg = new new_type(src.holder)
+					src.holder.organs["r_leg"] = src.r_leg
 					if (show_message)
 						src.holder.show_message("<span class='notice'><b>Your right leg [pick("magically ", "weirdly ", "suddenly ", "grodily ", "")]becomes [src.r_leg]!</b></span>")
 					if (user)
@@ -490,9 +499,49 @@
 		thishud.remove_object(stamina_bar)
 	hud.remove_object(stamina_bar)
 
+	for(var/obj/item/implant/imp in src.implant)
+		imp.disposing()
+	src.implant = null
+
+	for(var/image/im in health_mon_icons)
+		if(im.loc == src)
+			im.loc = null
+			im.dispose()
+			health_mon_icons -= im
+
+	for(var/image/im in arrestIconsAll)
+		if(im.loc == src)
+			im.loc = null
+			im.dispose()
+			health_mon_icons -= im
+
+	src.wear_suit = null
+	src.w_uniform = null
+	src.gloves = null
+	src.glasses = null
+	src.head = null
+	src.ears = null
+	src.shoes = null
+	src.belt = null
+	src.internal = null
+	src.internals = null
+	src.wear_mask = null
+	src.wear_id = null
+	src.r_store = null
+	src.l_store = null
+	src.back = null
+	src.handcuffs = null
+	src.r_hand = null
+	src.l_hand = null
+
+	src.chest_item = null
+
 	//huds -= stamina_bar
 	//hud -= stamina_bar
 	stamina_bar = null
+
+	src.organs.len = 0
+	src.organs = null
 
 	if (mutantrace)
 		mutantrace.dispose()
@@ -707,16 +756,18 @@
 
 #ifdef RESTART_WHEN_ALL_DEAD
 	var/cancel
-	for (var/mob/M in mobs)
-		if (M.client && !M.stat)
+	for (var/client/C)
+		if (!C.mob) continue
+		if (!C.mob.stat)
 			cancel = 1
 			break
 
 	if (!cancel && !abandon_allowed)
 		SPAWN_DBG (50)
 			cancel = 0
-			for (var/mob/M in mobs)
-				if (M.client && !M.stat)
+			for (var/client/C)
+				if (!C.mob) continue
+				if (!C.mob.stat)
 					cancel = 1
 					break
 
@@ -814,13 +865,12 @@
 
 	return
 
-#define BASE_SPEED 1.65
-#define RUN_SCALING 0.12
-
-
 /mob/living/carbon/human/movement_delay(var/atom/move_target = 0, running = 0)
-	. = BASE_SPEED
+	var/base_speed = BASE_SPEED
+	if (sustained_moves >= SUSTAINED_RUN_REQ)
+		base_speed = BASE_SPEED_SUSTAINED
 
+	. += base_speed
 	. += movement_delay_modifier
 
 
@@ -855,7 +905,7 @@
 			maximum_slowdown = modifier.maximum_slowdown
 
 	if (m_intent == "walk")
-		. += 0.8
+		. += WALK_DELAY_ADD
 
 	if (src.nodamage)
 		return .
@@ -932,9 +982,19 @@
 		next_step_delay = 0
 
 	if (running)
-		var/minSpeed = (1.0- RUN_SCALING * BASE_SPEED) / (1 - RUN_SCALING) // ensures sprinting with 1.2 tally drops it to 0.75
-		if (pulling) minSpeed = BASE_SPEED // not so fast, fucko
-		. = min(., minSpeed + (. - minSpeed) * RUN_SCALING) // i don't know what I'm doing, help
+
+		var/runScaling = src.lying ? RUN_SCALING_LYING : RUN_SCALING
+		if (src.hasStatus(list("staggered","blocking")))
+			runScaling = RUN_SCALING_STAGGER
+		var/minSpeed = (1.0- runScaling * base_speed) / (1 - runScaling) // ensures sprinting with 1.2 tally drops it to 0.75
+		if (pulling) minSpeed = base_speed // not so fast, fucko
+		. = min(., minSpeed + (. - minSpeed) * runScaling) // i don't know what I'm doing, help
+
+/mob/living/carbon/human/keys_changed(keys, changed)
+	..()
+	if (changed & KEY_RUN)
+		if (hud)
+			src.hud.set_sprint(keys & KEY_RUN)
 
 /mob/living/carbon/human/proc/start_sprint()
 	if (special_sprint && src.client)
@@ -946,19 +1006,22 @@
 			begin_sniping()
 	else
 		if (!next_step_delay && world.time >= next_sprint_boost)
-			if (src.getStatusDuration("staggered") < 1 && !src.hasStatus("blocking"))
-				if (!hasStatus(list("stunned", "paralysis", "weakened")))
-					sprint_particle(src)
+			if (!HAS_MOB_PROPERTY(src, PROP_CANTMOVE))
+				//if (src.hasStatus("blocking"))
+				//	for (var/obj/item/grab/block/G in src.equipped_list(check_for_magtractor = 0)) //instant break blocks when we start a sprint
+				//		qdel(G)
 
-					next_step_delay = max(src.next_move - world.time,0) //slows us on the following step by the amount of movement we just skipped over with our instant-step
-					src.next_move = world.time
-					src.attempt_move()
-					next_sprint_boost = world.time + max(src.next_move - world.time,BASE_SPEED) * 2
+				var/last = src.loc
+				var/force_puff = world.time < src.next_move + 0.5 SECONDS //assume we are still in a movement mindset even if we didnt change tiles
 
+				next_step_delay = max(src.next_move - world.time,0) //slows us on the following step by the amount of movement we just skipped over with our instant-step
+				src.next_move = world.time
+				src.attempt_move()
+				next_sprint_boost = world.time + max(src.next_move - world.time,BASE_SPEED) * 2
+
+				if (src.loc != last || force_puff) //ugly check to prevent stationary sprint weirds
+					sprint_particle(src, last)
 					playsound(src.loc,"sound/effects/sprint_puff.ogg", 25, 1)
-
-#undef BASE_SPEED
-#undef RUN_SCALING
 
 /mob/living/carbon/human/pull_speed_modifier(var/atom/move_target = 0)
 	. = 1
@@ -1004,7 +1067,7 @@
 				qdel(src.internal)
 			else
 				stat("Internal Atmosphere Info:", src.internal.name)
-				stat("Tank Pressure:", src.internal.air_contents.return_pressure())
+				stat("Tank Pressure:", MIXTURE_PRESSURE(src.internal.air_contents))
 				stat("Distribution Pressure:", src.internal.distribute_pressure)
 
 /mob/living/carbon/human/hotkey(name)
@@ -1595,7 +1658,7 @@
 	update_clothing()
 
 	if (ai_active)
-		ai_active = 0
+		ai_set_active(0)
 	if (src.organHolder && src.organHolder.brain && src.mind)
 		src.organHolder.brain.setOwner(src.mind)
 
@@ -1609,7 +1672,7 @@
 /mob/living/carbon/human/Logout()
 	..()
 	if (!ai_active && is_npc)
-		ai_active = 1
+		ai_set_active(1)
 	return
 
 /mob/living/carbon/human/get_heard_name()
@@ -2454,6 +2517,9 @@
 		return 0
 
 /mob/living/carbon/human/swap_hand(var/specify=-1)
+	var/obj/item/grab/block/B = src.check_block(ignoreStuns = 1)
+	if(B && hand != specify)
+		qdel(B)
 	if (specify >= 0)
 		src.hand = specify
 	else
@@ -3454,90 +3520,119 @@
 
 #define can_step_sfx(H)  (H.footstep >= 4 || (H.m_intent != "run" && H.footstep >= 3))
 
+/mob/living/carbon/human/OnMove()
+	var/turf/NewLoc = get_turf(src)
+	var/steps = 1
+	if (move_dir & (move_dir-1))
+		steps *= DIAG_MOVE_DELAY_MULT
 
-/mob/living/carbon/human/Move(var/turf/NewLoc, direct)
-	//var/oldloc = loc
-	. = ..()
+	if (world.time < src.next_move + SUSTAINED_RUN_GRACE)
+		if(move_dir & last_move_dir)
+			if (sustained_moves < SUSTAINED_RUN_REQ+1 && sustained_moves + steps >= SUSTAINED_RUN_REQ+1)
+				sprint_particle_small(src,get_step(NewLoc,turn(move_dir,180)),move_dir)
+				playsound(src.loc,"sound/effects/sprint_puff.ogg", 9, 1,extrarange = -25, pitch=2.5)
+			sustained_moves += steps
+		else
+			if (sustained_moves >= SUSTAINED_RUN_REQ+1)
+				sprint_particle_small(src,get_step(NewLoc,turn(move_dir,180)),turn(move_dir,180))
+				playsound(src.loc,"sound/effects/sprint_puff.ogg", 9, 1,extrarange = -25, pitch=2.8)
+			else if (move_dir == turn(last_move_dir,180))
+				sprint_particle_tiny(src,get_step(NewLoc,turn(move_dir,180)),turn(move_dir,180))
+				playsound(src.loc,"sound/effects/sprint_puff.ogg", 9, 1,extrarange = -25, pitch=2.9)
 
-	if (.)
-		// Call movement traits
-		if(src.traitHolder)
-			for(var/T in src.traitHolder.moveTraits)
-				var/obj/trait/O = getTraitById(T)
-				O.onMove(src)
+			sustained_moves = 0
+	else
+		sustained_moves = 0
 
-		//STEP SOUND HANDLING
-		if (!src.lying && isturf(NewLoc) && NewLoc.turf_flags & MOB_STEP)
-			if (NewLoc.active_liquid)
-				if (NewLoc.active_liquid.step_sound)
-					if (src.m_intent == "run")
-						if (src.footstep >= 4)
-							src.footstep = 0
-						else
-							src.footstep++
-						if (src.footstep == 0)
-							playsound(NewLoc, NewLoc.active_liquid.step_sound, 50, 1)
-					else
-						if (src.footstep >= 2)
-							src.footstep = 0
-						else
-							src.footstep++
-						if (src.footstep == 0)
-							playsound(NewLoc, NewLoc.active_liquid.step_sound, 20, 1)
-			else if (src.shoes && src.shoes.step_sound && src.shoes.step_lots)
+	//STEP SOUND HANDLING
+	if (!src.lying && isturf(NewLoc) && NewLoc.turf_flags & MOB_STEP)
+		if (NewLoc.active_liquid)
+			if (NewLoc.active_liquid.step_sound)
 				if (src.m_intent == "run")
+					if (src.footstep >= 4)
+						src.footstep = 0
+					else
+						src.footstep += steps
+					if (src.footstep == 0)
+						playsound(NewLoc, NewLoc.active_liquid.step_sound, 50, 1)
+				else
 					if (src.footstep >= 2)
 						src.footstep = 0
 					else
-						src.footstep++
+						src.footstep += steps
 					if (src.footstep == 0)
-						playsound(NewLoc, src.shoes.step_sound, 50, 1)
-				else
-					playsound(NewLoc, src.shoes.step_sound, 20, 1)
-
-			else
-				src.footstep++
-				if (can_step_sfx(src))
+						playsound(NewLoc, NewLoc.active_liquid.step_sound, 20, 1)
+		else if (src.shoes && src.shoes.step_sound && src.shoes.step_lots)
+			if (src.m_intent == "run")
+				if (src.footstep >= 2)
 					src.footstep = 0
-					if (NewLoc.step_material || !src.shoes || (src.shoes && src.shoes.step_sound))
-						var/priority = 0
+				else
+					src.footstep += steps
+				if (src.footstep == 0)
+					playsound(NewLoc, src.shoes.step_sound, 50, 1)
+			else
+				playsound(NewLoc, src.shoes.step_sound, 20, 1)
 
-						if (!NewLoc.step_material)
-							priority = -1
-						else if (src.shoes && !src.shoes.step_sound)
-							priority = 1
+		else
+			src.footstep += steps
+			if (can_step_sfx(src))
+				src.footstep = 0
+				if (NewLoc.step_material || !src.shoes || (src.shoes && src.shoes.step_sound))
+					var/priority = 0
 
-						if (!priority) //now we must resolve bc the floor and the shoe both wanna make noise
-							if (!src.shoes) //barefoot
-								priority = (STEP_PRIORITY_MAX > NewLoc.step_priority) ? -1 : 1
-							else //shoed
-								priority = (src.shoes.step_priority > NewLoc.step_priority) ? -1 : 1
+					if (!NewLoc.step_material)
+						priority = -1
+					else if (src.shoes && !src.shoes.step_sound)
+						priority = 1
 
-						if (priority)
-							if (priority > 0)
-								priority = NewLoc.step_material
-							else if (priority < 0)
-								priority = src.shoes ? src.shoes.step_sound : "step_barefoot"
+					if (!priority) //now we must resolve bc the floor and the shoe both wanna make noise
+						if (!src.shoes) //barefoot
+							priority = (STEP_PRIORITY_MAX > NewLoc.step_priority) ? -1 : 1
+						else //shoed
+							priority = (src.shoes.step_priority > NewLoc.step_priority) ? -1 : 1
 
-							playsound(NewLoc, "[priority]", src.m_intent == "run" ? 65 : 40, 1, extrarange = 3)
+					if (priority)
+						if (priority > 0)
+							priority = NewLoc.step_material
+						else if (priority < 0)
+							priority = src.shoes ? src.shoes.step_sound : "step_barefoot"
 
-		//STEP SOUND HANDLING OVER
+						playsound(NewLoc, "[priority]", src.m_intent == "run" ? 65 : 40, 1, extrarange = 3)
 
-		if (prob(5)) // Handling tied or cut shoelaces courtesy of /obj/item/gun/energy/pickpocket
-			if (src.shoes && src.m_intent == "run" && src.shoes.laces != LACES_NORMAL)
-				if (src.shoes.laces == LACES_TIED) // Laces tied
-					boutput(src, "You stumble and fall headlong to the ground. Your shoelaces are a huge knot! <span class='alert'>FUCK!</span>")
-					src.changeStatus("weakened", 3 SECONDS)
-				else if (src.shoes.laces == LACES_CUT) // Laces cut
-					var/obj/item/clothing/shoes/S = src.shoes
-					src.u_equip(S)
-					S.set_loc(src.loc)
-					S.dropped(src)
-					S.layer = initial(S.layer)
-					if (prob(20)) boutput(src, "You run right the fuck out of your shoes. <span class='alert'>Shit!</span>")
+	//STEP SOUND HANDLING OVER
 
+	if (prob(5)) // Handling tied or cut shoelaces courtesy of /obj/item/gun/energy/pickpocket
+		if (src.shoes && src.m_intent == "run" && src.shoes.laces != LACES_NORMAL)
+			if (src.shoes.laces == LACES_TIED) // Laces tied
+				boutput(src, "You stumble and fall headlong to the ground. Your shoelaces are a huge knot! <span class='alert'>FUCK!</span>")
+				src.changeStatus("weakened", 3 SECONDS)
+			else if (src.shoes.laces == LACES_CUT) // Laces cut
+				var/obj/item/clothing/shoes/S = src.shoes
+				src.u_equip(S)
+				S.set_loc(src.loc)
+				S.dropped(src)
+				S.layer = initial(S.layer)
+				if (prob(20)) boutput(src, "You run right the fuck out of your shoes. <span class='alert'>Shit!</span>")
+
+
+
+	// Call movement traits
+	if(src.traitHolder)
+		for(var/T in src.traitHolder.moveTraits)
+			var/obj/trait/O = getTraitById(T)
+			O.onMove(src)
+
+
+	..()
 #undef can_step_sfx
 
+/mob/living/carbon/human/Move(var/turf/NewLoc, direct)
+	. = ..()
+	if (. && move_dir && !(direct & move_dir))
+		if (sustained_moves >= SUSTAINED_RUN_REQ+1)
+			sprint_particle_small(src,get_step(NewLoc,turn(move_dir,180)),turn(move_dir,180))
+			playsound(src.loc,"sound/effects/sprint_puff.ogg", 9, 1,extrarange = -25, pitch=2.8)
+		sustained_moves = 0
 
 /mob/living/carbon/human/set_loc(var/newloc as turf|mob|obj in world)
 	if (abilityHolder)
