@@ -76,6 +76,8 @@
 	var/resourcesLoaded = 0 //Has this client done the mass resource downloading yet?
 	var/datum/tooltipHolder/tooltipHolder = null
 
+	var/chui/window/keybind_menu/keybind_menu = null
+
 	var/delete_state = DELETE_STOP
 
 	var/list/cloudsaves
@@ -213,7 +215,7 @@
 	//src.chui = new /datum/chui(src)
 
 	//Should eliminate any local resource loading issues with chui windows
-	if (!cdn)
+	if (!cdn && !(!address || (world.address == src.address)))
 		var/list/chuiResources = list(
 			"browserassets/js/jquery.min.js",
 			"browserassets/js/jquery.nanoscroller.min.js",
@@ -276,7 +278,7 @@
 */
 
 	if(player_capa)
-		if(clients.len >= player_cap)
+		if(total_clients() >= player_cap)
 			if (!src.holder)
 				alert(src,"I'm sorry, the player cap of [player_cap] has been reached for this server.")
 				del(src)
@@ -332,6 +334,7 @@
 		updateXpRewards()
 
 	SPAWN_DBG(3 SECONDS)
+		var/is_newbie = 0
 		// new player logic, moving some of the preferences handling procs from new_player.Login
 		Z_LOG_DEBUG("Client/New", "[src.ckey] - 3 sec spawn stuff")
 		if (!preferences)
@@ -341,19 +344,22 @@
 
 			//Load the preferences up here instead.
 			if(!preferences.savefile_load(src))
+#ifndef IM_TESTING_SHIT_STOP_BARFING_CHANGELOGS_AT_ME
 				//preferences.randomizeLook()
 				preferences.ShowChoices(src.mob)
+				src.mob.Browse(grabResource("html/tgControls.html"),"window=tgcontrolsinfo;size=600x400;title=TG Controls Help")
 				boutput(src, "<span class='alert'>Welcome! You don't have a character profile saved yet, so please create one. If you're new, check out the <a target='_blank' href='https://wiki.ss13.co/Getting_Started#Fundamentals'>quick-start guide</a> for how to play!</span>")
 				//hey maybe put some 'new player mini-instructional' prompt here
 				//ok :)
-
+#endif
+				is_newbie = 1
 			else if(!src.holder)
 				preferences.sanitize_name()
 
 			if (noir)
 				animate_fade_grayscale(src, 50)
 #ifndef IM_TESTING_SHIT_STOP_BARFING_CHANGELOGS_AT_ME
-			if (!changes && preferences.view_changelog)
+			if (!changes && preferences.view_changelog && !is_newbie)
 				if (!cdn)
 					//src << browse_rsc(file("browserassets/images/changelog/postcardsmall.jpg"))
 					src << browse_rsc(file("browserassets/images/changelog/88x31.png"))
@@ -949,7 +955,7 @@ var/global/curr_day = null
 	SPAWN_DBG(0)//I do not advocate this! So basically hide your eyes for one line of code.
 		world.Export( "http://spacebee.goonhub.com/api/cloudsave?dataput&api_key=[config.ircbot_api]&ckey=[ckey]&key=[url_encode(key)]&value=[url_encode(clouddata[key])]" )//If it fails, oh well...
 //Returns some cloud data on the client
-/client/proc/cloud_get( var/key, var/value )
+/client/proc/cloud_get( var/key )
 	return clouddata ? clouddata[key] : null
 //Returns 1 if you can set or retrieve cloud data on the client
 /client/proc/cloud_available()
@@ -1088,7 +1094,7 @@ var/global/curr_day = null
 	tg_controls = tg
 	winset( src, "menu", "tg_controls.is-checked=[tg ? "true" : "false"]" )
 
-	src.mob.update_keymap()
+	src.mob.reset_keymap()
 
 /client/verb/set_tg_controls()
 	set hidden = 1

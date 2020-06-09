@@ -593,6 +593,10 @@
 	if(src.medium_lights)
 		update_medium_light_visibility()
 
+//called once per player-invoked move, regardless of diagonal etc
+//called via pulls and mob steps
+/atom/movable/proc/OnMove(source = null)
+
 /atom/movable/proc/pull()
 	//set name = "Pull"
 	//set src in oview(1)
@@ -1037,7 +1041,7 @@
 
 
 /atom/proc/interact(var/mob/user)
-	if (isdead(user) || (!iscarbon(user) && !iscritter(user) && !issilicon(usr)))
+	if (isdead(user) || (!iscarbon(user) && !ismobcritter(user) && !issilicon(usr)))
 		return
 
 	if (!istype(src.loc, /turf) || user.stat || user.hasStatus(list("paralysis", "stunned", "weakened")) || user.restrained())
