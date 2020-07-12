@@ -643,7 +643,7 @@ datum
 							boutput(M, "<B>The Emergency Shuttle has docked with the station! You have 3 minutes to board the Emergency Shuttle.</B>")
 						if(2)
 							boutput(M, "<span class='alert'><b>Restarting world!</b> </span><span class='notice'>Initiated by Administrator!</span>")
-							SPAWN_DBG(2 SECONDS) M.playsound_local(M.loc, pick('sound/misc/NewRound.ogg', 'sound/misc/NewRound2.ogg', 'sound/misc/NewRound3.ogg', 'sound/misc/NewRound4.ogg'), 50, 1)
+							SPAWN_DBG(2 SECONDS) M.playsound_local(M.loc, pick('sound/misc/NewRound.ogg', 'sound/misc/NewRound2.ogg', 'sound/misc/NewRound3.ogg', 'sound/misc/TimeForANewRound.ogg'), 50, 1)
 						if(3)
 							switch (rand(1,4))
 								if(1)
@@ -797,12 +797,12 @@ datum
 			bladder_value = -0.1
 			hunger_value = -0.3
 			thirst_value = -0.2
-			stun_resist = 98
 
 			on_remove()
 				if(ismob(holder?.my_atom))
 					var/mob/M = holder.my_atom
 					M.remove_stam_mod_regen("triplemeth")
+					M.remove_stun_resist_mod("triplemeth")
 
 				if(hascall(holder.my_atom,"removeOverlayComposition"))
 					holder.my_atom:removeOverlayComposition(/datum/overlayComposition/triplemeth)
@@ -813,7 +813,7 @@ datum
 				if(!M) M = holder.my_atom
 
 				if(holder.has_reagent("methamphetamine")) return ..() //Since is created by a meth overdose, dont react while meth is in their system.
-
+				M.add_stun_resist_mod("triplemeth", 98)
 				M.add_stam_mod_regen("triplemeth", 1000)
 
 				if(hascall(holder.my_atom,"addOverlayComposition"))

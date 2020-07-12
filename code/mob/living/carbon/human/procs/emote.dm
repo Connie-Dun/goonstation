@@ -5,11 +5,6 @@
 /mob/living/carbon/human/emote(var/act, var/voluntary = 0)
 	var/param = null
 
-	for (var/uid in src.pathogens)
-		var/datum/pathogen/P = src.pathogens[uid]
-		if (P.onemote(act, voluntary))
-			return
-
 	if (!bioHolder) bioHolder = new/datum/bioHolder( src )
 
 	if (src.bioHolder.HasEffect("revenant"))
@@ -20,6 +15,11 @@
 		var/t1 = findtext(act, " ", 1, null)
 		param = copytext(act, t1 + 1, length(act) + 1)
 		act = copytext(act, 1, t1)
+
+	for (var/uid in src.pathogens)
+		var/datum/pathogen/P = src.pathogens[uid]
+		if (P.onemote(act, voluntary, param))
+			return
 
 	var/muzzled = istype(src.wear_mask, /obj/item/clothing/mask/muzzle)
 	var/m_type = 1 //1 is visible, 2 is audible
@@ -91,42 +91,67 @@
 							message = "<B>[src]</B> grunts for a moment. Nothing happens."
 					else
 						m_type = 2
+
+
+						if (iscluwne(src))
+							playsound(get_turf(src), "sound/voice/farts/poo.ogg", 50, 1)
+						else if (src.organ_istype("butt", /obj/item/clothing/head/butt/cyberbutt))
+							playsound(get_turf(src), "sound/voice/farts/poo2_robot.ogg", 50, 1, 0, src.get_age_pitch())
+						else if (src.reagents && src.reagents.has_reagent("honk_fart"))
+							playsound(src.loc, 'sound/musical_instruments/Bikehorn_1.ogg', 50, 1, -1)
+						else
+							if (narrator_mode)
+								playsound(get_turf(src), 'sound/vox/fart.ogg', 50, 0, 0, src.get_age_pitch())
+							else
+								if (src.getStatusDuration("food_deep_fart"))
+									playsound(get_turf(src), src.sound_fart, 50, 0, 0, src.get_age_pitch() - 0.3)
+								else
+									playsound(get_turf(src), src.sound_fart, 50, 0, 0, src.get_age_pitch())
+
 						var/fart_on_other = 0
-						for (var/mob/living/M in src.loc) //TODO : FARTABLE FLAG?
-							if (M == src || !M.lying)
-								continue
-							message = "<span class='alert'><B>[src]</B> farts in [M]'s face!</span>"
-							if (sims)
-								sims.affectMotive("fun", 4)
-							if (src.mind)
-								if (M.mind && M.mind.assigned_role == "Geneticist")
-									karma_update(10, "SAINT", src)
-							fart_on_other = 1
-							break
-						for (var/obj/item/storage/bible/B in src.loc)
-							B.farty_heresy(src)
-							fart_on_other = 1
-							break
-						for (var/obj/item/book_kinginyellow/K in src.loc)
-							K.farty_doom(src)
-							fart_on_other = 1
-							break
-						for (var/obj/item/photo/voodoo/V in src.loc) //kubius: voodoo photo farty party
-							var/mob/M = V.cursed_dude
-							if (!M || !M.lying)
-								continue
-							playsound(get_turf(M), src.sound_fart, 20, 0, 0, src.get_age_pitch())
-							switch(rand(1, 7))
-								if (1) M.visible_message("<span class='emote'><b>[M]</b> suddenly radiates an unwelcoming odor.</span>")
-								if (2) M.visible_message("<span class='emote'><b>[M]</b> is visited by ethereal incontinence.</span>")
-								if (3) M.visible_message("<span class='emote'><b>[M]</b> experiences paranormal gastrointestinal phenomena.</span>")
-								if (4) M.visible_message("<span class='emote'><b>[M]</b> involuntarily telecommutes to the farty party.</span>")
-								if (5) M.visible_message("<span class='emote'><b>[M]</b> is swept over by a mysterious draft.</span>")
-								if (6) M.visible_message("<span class='emote'><b>[M]</b> abruptly emits an odor of cheese.</span>")
-								if (7) M.visible_message("<span class='emote'><b>[M]</b> is set upon by extradimensional flatulence.</span>")
-							if (sims)
-								sims.affectMotive("fun", 4)
-							//break deliberately omitted
+						for (var/thing in src.loc)
+							var/atom/A = thing
+							if (A.event_handler_flags & IS_FARTABLE)
+								if (istype(A,/mob/living))
+									var/mob/living/M = A
+									if (M == src || !M.lying)
+										continue
+									message = "<span class='alert'><B>[src]</B> farts in [M]'s face!</span>"
+									if (sims)
+										sims.affectMotive("fun", 4)
+									if (src.mind)
+										if (M.mind && M.mind.assigned_role == "Geneticist")
+											karma_update(10, "SAINT", src)
+									fart_on_other = 1
+									break
+								else if (istype(A,/obj/item/storage/bible))
+									var/obj/item/storage/bible/B = A
+									B.farty_heresy(src)
+									fart_on_other = 1
+									break
+								else if (istype(A,/obj/item/book_kinginyellow))
+									var/obj/item/book_kinginyellow/K = A
+									K.farty_doom(src)
+									fart_on_other = 1
+									break
+								else if (istype(A,/obj/item/photo/voodoo))
+									var/obj/item/photo/voodoo/V = A
+									var/mob/M = V.cursed_dude
+									if (!M || !M.lying)
+										continue
+									playsound(get_turf(M), src.sound_fart, 20, 0, 0, src.get_age_pitch())
+									switch(rand(1, 7))
+										if (1) M.visible_message("<span class='emote'><b>[M]</b> suddenly radiates an unwelcoming odor.</span>")
+										if (2) M.visible_message("<span class='emote'><b>[M]</b> is visited by ethereal incontinence.</span>")
+										if (3) M.visible_message("<span class='emote'><b>[M]</b> experiences paranormal gastrointestinal phenomena.</span>")
+										if (4) M.visible_message("<span class='emote'><b>[M]</b> involuntarily telecommutes to the farty party.</span>")
+										if (5) M.visible_message("<span class='emote'><b>[M]</b> is swept over by a mysterious draft.</span>")
+										if (6) M.visible_message("<span class='emote'><b>[M]</b> abruptly emits an odor of cheese.</span>")
+										if (7) M.visible_message("<span class='emote'><b>[M]</b> is set upon by extradimensional flatulence.</span>")
+									if (sims)
+										sims.affectMotive("fun", 4)
+									//break deliberately omitted
+
 						if (!fart_on_other)
 							switch(rand(1, 42))
 								if (1) message = "<B>[src]</B> lets out a girly little 'toot' from [his_or_her(src)] butt."
@@ -175,54 +200,51 @@
 								if (40) message = "<B>[src]</B> laughs! [his_or_her(src)] breath smells like a fart."
 								if (41) message = "<B>[src]</B> farts, and as such, blob cannot evoulate."
 								if (42) message = "<b>[src]</B> farts. It might have been the Citizen Kane of farts."
-						if (src.bioHolder && src.bioHolder.HasEffect("toxic_farts"))
-							message = "<span class='alert'><B>[src] [pick("unleashes","rips","blasts")] \a [pick("truly","utterly","devastatingly","shockingly")] [pick("hideous","horrendous","horrific","heinous","horrible")] fart!</B></span>"
-							var/turf/fart_turf = get_turf(src)
-							fart_turf.fluid_react_single("toxic_fart",2,airborne = 1)
+
 						// If there is a chest item, see if it can be activated on fart (attack_self)
 						if (src && src.chest_item != null) //Gotta do that pre-emptive runtime protection!
 							src.chest_item_attack_self_on_fart()
-						if (src.bioHolder && src.bioHolder.HasEffect("linkedfart"))
-							message = "<span class='alert'><B>[src] [pick("unleashes","rips","blasts")] \a [pick("truly","utterly","devastatingly","shockingly")] [pick("hideous","horrendous","horrific","heinous","horrible")] fart!</B></span>"
-							var/turf/fart_turf = get_turf(src)
-							fart_turf.fluid_react_single("toxic_fart",2,airborne = 1)
 
-							for(var/mob/living/H in mobs)
-								if (H.bioHolder && H.bioHolder.HasEffect("linkedfart")) continue
-								if(locate(/obj/item/storage/bible) in get_turf(H))
-									src.visible_message("<span class='alert'><b>A mysterious force smites [src.name] for inciting blasphemy!</b></span>")
-									src.gib()
-								else
-									H.emote("fart")
-						if (istype(src.loc, /turf/space))
-							// mbc : no actually fuck this it throws off the whole balance of space movement
-							if (src.getStatusDuration("food_space_farts"))
-								src.inertia_dir = src.dir
-								step(src, inertia_dir)
-								SPAWN_DBG(1 DECI SECOND)
+						if (src.bioHolder)
+							if (src.bioHolder.HasEffect("toxic_farts"))
+								message = "<span class='alert'><B>[src] [pick("unleashes","rips","blasts")] \a [pick("truly","utterly","devastatingly","shockingly")] [pick("hideous","horrendous","horrific","heinous","horrible")] fart!</B></span>"
+								var/turf/fart_turf = get_turf(src)
+								fart_turf.fluid_react_single("toxic_fart",2,airborne = 1)
+
+							if (src.bioHolder.HasEffect("linkedfart"))
+								message = "<span class='alert'><B>[src] [pick("unleashes","rips","blasts")] \a [pick("truly","utterly","devastatingly","shockingly")] [pick("hideous","horrendous","horrific","heinous","horrible")] fart!</B></span>"
+								var/turf/fart_turf = get_turf(src)
+								fart_turf.fluid_react_single("toxic_fart",2,airborne = 1)
+
+								for(var/mob/living/H in mobs)
+									if (H.bioHolder && H.bioHolder.HasEffect("linkedfart")) continue
+									var/found_bible = 0
+									for (var/thing in H.loc)
+										var/atom/A = thing
+										if (A.event_handler_flags & IS_FARTABLE)
+											if (istype(A,/obj/item/storage/bible))
+												found_bible = 1
+									if (found_bible)
+										src.visible_message("<span class='alert'><b>A mysterious force smites [src.name] for inciting blasphemy!</b></span>")
+										src.gib()
+									else
+										H.emote("fart")
+
+						var/turf/T = get_turf(src)
+						if (T && T == src.loc)
+							if (T.turf_flags & CAN_BE_SPACE_SAMPLE)
+								if (src.getStatusDuration("food_space_farts"))
 									src.inertia_dir = src.dir
 									step(src, inertia_dir)
-
-						if (iscluwne(src))
-							playsound(get_turf(src), "sound/voice/farts/poo.ogg", 50, 1)
-						else if (src.organ_istype("butt", /obj/item/clothing/head/butt/cyberbutt))
-							playsound(get_turf(src), "sound/voice/farts/poo2_robot.ogg", 50, 1, 0, src.get_age_pitch())
-						else if (src.reagents && src.reagents.has_reagent("honk_fart"))
-							playsound(src.loc, 'sound/musical_instruments/Bikehorn_1.ogg', 50, 1, -1)
-						else
-							if (narrator_mode)
-								playsound(get_turf(src), 'sound/vox/fart.ogg', 50, 0, 0, src.get_age_pitch())
+									SPAWN_DBG(1 DECI SECOND)
+										src.inertia_dir = src.dir
+										step(src, inertia_dir)
 							else
-								if (src.getStatusDuration("food_deep_fart"))
-									playsound(get_turf(src), src.sound_fart, 50, 0, 0, src.get_age_pitch() - 0.3)
-								else
-									playsound(get_turf(src), src.sound_fart, 50, 0, 0, src.get_age_pitch())
-
-						if(src.loc && istype(src.loc, /turf/simulated/floor/specialroom/freezer) && prob(10)) //ZeWaka: Fix for null.loc
-							message = "<b>[src]</B> farts. The fart freezes in MID-AIR!!!"
-							new/obj/item/material_piece/fart(src.loc)
-							var/obj/item/material_piece/fart/F = unpool(/obj/item/material_piece/fart)
-							F.set_loc(src.loc)
+								if(prob(10) && istype(src.loc, /turf/simulated/floor/specialroom/freezer)) //ZeWaka: Fix for null.loc
+									message = "<b>[src]</B> farts. The fart freezes in MID-AIR!!!"
+									new/obj/item/material_piece/fart(src.loc)
+									var/obj/item/material_piece/fart/F = unpool(/obj/item/material_piece/fart)
+									F.set_loc(src.loc)
 
 						src.expel_fart_gas(oxyplasmafart)
 
@@ -239,12 +261,15 @@
 					G.throw_at(target,5,1)
 					src.visible_message("<b>[src]</B> farts out a...glowstick?")
 
-			if ("salute","bow","hug","wave", "blowkiss")
+			if ("salute","bow","hug","wave", "blowkiss","sidehug")
 				// visible targeted emotes
 				if (!src.restrained())
-					var/M = null
+					var/mob/M = null
 					if (param)
-						for (var/mob/A in view(null, null))
+						var/range = 8
+						if (act == "hug" || act == "sidehug")
+							range = 1
+						for (var/mob/A in view(range, src))
 							if (ckey(param) == ckey(A.name))
 								M = A
 								break
@@ -256,6 +281,8 @@
 						switch(act)
 							if ("bow","wave")
 								message = "<B>[src]</B> [act]s to [param]."
+							if ("sidehug")
+								message = "<B>[src]</B> awkwardly side-hugs [param]."
 							if ("blowkiss")
 								message = "<B>[src]</B> blows a kiss to [param]."
 								//var/atom/U = get_turf(param)
@@ -264,7 +291,7 @@
 								message = "<B>[src]</B> [act]s [param]."
 					else
 						switch(act)
-							if ("hug")
+							if ("hug", "sidehug")
 								message = "<B>[src]</b> [act]s [himself_or_herself(src)]."
 							if ("blowkiss")
 								message = "<B>[src]</b> blows a kiss to... [himself_or_herself(src)]?"
@@ -518,7 +545,7 @@
 							else if (src.r_hand)
 								thing = src.r_hand
 						if (thing)
-							thing.on_spin_emote(src)
+							message = thing.on_spin_emote(src)
 							animate(thing, transform = turn(matrix(), 120), time = 0.7, loop = 3)
 							animate(transform = turn(matrix(), 240), time = 0.7)
 							animate(transform = null, time = 0.7)
@@ -1066,9 +1093,9 @@
 				if (!voluntary || src.emote_check(voluntary,50))
 					if (deathConfettiActive || (src.mind && src.mind.assigned_role == "Clown"))
 						src.deathConfetti()
-					if (prob(15) && !ischangeling(src) && !isdead(src)) message = "<span style=\"color:black\"><B>[src]</B> seizes up and falls limp, peeking out of one eye sneakily.</span>"
+					if (prob(15) && !ischangeling(src) && !isdead(src)) message = "<span class='regular'><B>[src]</B> seizes up and falls limp, peeking out of one eye sneakily.</span>"
 					else
-						message = "<span style=\"color:black\"><B>[src]</B> seizes up and falls limp, [his_or_her(src)] eyes dead and lifeless...</span>"
+						message = "<span class='regular'><B>[src]</B> seizes up and falls limp, [his_or_her(src)] eyes dead and lifeless...</span>"
 						playsound(get_turf(src), "sound/voice/death_[pick(1,2)].ogg", 40, 0, 0, src.get_age_pitch())
 					m_type = 1
 
@@ -1157,10 +1184,7 @@
 									src.dir = turn(src.dir, 90)
 									sleep(0.2 SECONDS)
 
-							var/datum/effects/system/spark_spread/s = unpool(/datum/effects/system/spark_spread)
-							s.set_up(3, 1, src)
-							s.start()
-
+							elecflash(src,power = 2)
 						else
 							//glowsticks
 							var/left_glowstick = istype (l_hand, /obj/item/device/light/glowstick)
@@ -1422,13 +1446,12 @@
 										if (prob(50))
 											M.ex_act(3) // this is hilariously overpowered, but WHATEVER!!!
 										else
-											G.affecting.changeStatus("stunned", 50)
 											G.affecting.changeStatus("weakened", 5 SECONDS)
 											G.affecting.force_laydown_standup()
 											G.affecting.TakeDamage("head", 10, 0, 0, DAMAGE_BLUNT)
 										playsound(src.loc, "sound/impact_sounds/Flesh_Break_1.ogg", 75, 1)
 									else
-										src.changeStatus("weakened", 3.5 SECONDS)
+										src.changeStatus("weakened", 3.9 SECONDS)
 
 										if (client && client.hellbanned)
 											src.changeStatus("weakened", 4 SECONDS)
@@ -1449,12 +1472,11 @@
 												if ((prob(g_tabl.reinforced ? 60 : 80)) || (src.bioHolder.HasEffect("clumsy") && (!g_tabl.reinforced || prob(90))) || ((src.bioHolder.HasEffect("fat") || G.affecting.bioHolder.HasEffect("fat")) && (!g_tabl.reinforced || prob(90))))
 													SPAWN_DBG(0)
 														g_tabl.smash()
-														src.changeStatus("stunned", 7 SECONDS)
-														src.changeStatus("weakened", 6 SECONDS)
+														src.changeStatus("weakened", 7 SECONDS)
 														random_brute_damage(src, rand(20,40))
 														take_bleeding_damage(src, src, rand(20,40))
 
-														G.affecting.changeStatus("stunned", 2 SECONDS)
+
 														G.affecting.changeStatus("weakened", 4 SECONDS)
 														random_brute_damage(G.affecting, rand(20,40))
 														take_bleeding_damage(G.affecting, src, rand(20,40))
@@ -1505,9 +1527,7 @@
 						for (var/mob/O in viewers(src, null))
 							O.show_message("<B>[src]</B> burps.")
 						for (var/mob/M in oview(1))
-							var/datum/effects/system/spark_spread/s = unpool(/datum/effects/system/spark_spread)
-							s.set_up(3, 1, src)
-							s.start()
+							elecflash(src,power = 2)
 							boutput(M, "<span class='notice'>BZZZZZZZZZZZT!</span>")
 							M.TakeDamage("chest", 0, 20, 0, DAMAGE_BURN)
 							src.charges -= 1
@@ -1651,50 +1671,127 @@
 			if ("monologue")
 				m_type = 2
 				if (src.mind && src.mind.assigned_role == "Detective")
+					var/obj/item/grab/G
 					if (istype(src.l_hand, /obj/item/grab))
-						var/obj/item/grab/G = src.l_hand
-						if (ishuman(G.affecting))
-							message = "<span style=\"color:black\"><B>[src]</B> says, \"I'll stare the bastard in the face as he screams to God, and I'll laugh harder when he whimpers like a baby. And when [src.l_hand:affecting]'s eyes go dead, the hell I send him to will seem like heaven after what I've done to him.\"</span>"
+						G = src.l_hand
 					else if (istype(src.r_hand, /obj/item/grab))
-						var/obj/item/grab/G = src.r_hand
-						if (ishuman(G.affecting))
-							message = "<span style=\"color:black\"><B>[src]</B> says, \"I'll stare the bastard in the face as he screams to God, and I'll laugh harder when he whimpers like a baby. And when [src.r_hand:affecting]'s eyes go dead, the hell I send him to will seem like heaven after what I've done to him.\"</span>"
+						G = src.r_hand
+					if (G && ishuman(G.affecting))
+						var/mob/M = G.affecting
+						src.say_verb("I'll stare the bastard in the face as [he_or_she(M)] screams to God, and I'll laugh harder when [he_or_she(M)] whimpers like a baby.")
+						sleep(0.7 SECONDS)
+						if(G && G.affecting == M)
+							src.say_verb("And when [M]'s eyes go dead, the hell I send [him_or_her(M)] to will seem like heaven after what I've done to [him_or_her(M)].")
+						else
+							src.emote("laugh")
 					else if (istype(src.loc.loc, /area/station/security/detectives_office))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"As I looked out the door of my office, I realised it was a night when you didn't know your friends but strangers looked familiar. A night like this, the smartest thing to do is nothing: stay home. It was like the wind carried people along with it. But I had to get out there.\"</span>"
+						src.say_verb("As I looked out the door of my office, I realised it was a night when you didn't know your friends but strangers looked familiar.")
+						sleep(1 SECONDS)
+						src.say_verb("A night like this, the smartest thing to do is nothing: stay home.")
+						sleep(0.5 SECONDS)
+						src.say_verb("It was like the wind carried people along with it.")
+						sleep(0.8 SECONDS)
+						src.say_verb("But I had to get out there.")
 					else if (istype(src.loc.loc, /area/station/maintenance))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"The dark maintenance corridoors of this place were always the same, home to the most shady characters you could ever imagine. Walk down the right back alley in [station_name(1)], and you can find anything.\"</span>"
+						src.say_verb("The dark maintenance corridoors of this place were always the same, home to the most shady characters you could ever imagine.")
+						sleep(1 SECONDS)
+						src.say_verb("Walk down the right back alley in [station_name(1)], and you can find anything.")
 					else if (istype(src.loc.loc, /area/station/hydroponics))
-						message = "<span style=\"color:black\"><B>[src]</b> says, \"A gang of space farmers growing psilocybin mushrooms, cannabis, and of course those goddamned george melons. A shady bunch, whose wiles had earned them the trust of many. The Chef. The Barman. But not me. No, their charms don't work on a man of values and principles.\"</span>"
+						src.say_verb("A gang of space farmers growing psilocybin mushrooms, cannabis, and of course those goddamned george melons.")
+						sleep(1 SECONDS)
+						src.say_verb("A shady bunch, whose wiles had earned them the trust of many.")
+						sleep(0.8 SECONDS)
+						src.say_verb("The Chef.")
+						sleep(0.8 SECONDS)
+						src.say_verb("The Barman.")
+						sleep(0.8 SECONDS)
+						src.say_verb("But not me.")
+						sleep(0.5 SECONDS)
+						src.emote("frown")
+						sleep(0.5 SECONDS)
+						src.say_verb("No, their charms don't work on a [man_or_woman(src)] of values and principles.")
 					else if (istype(src.loc.loc, /area/station/mailroom))
-						message = "<span style=\"color:black\"><B>[src]</b> says, \"The post office, an unused room habited by a brainless monkey, a cynical postman, and now, me. I've never trusted postal workers, with their crisp blue suits and their peaked caps. There's never any mail sent, excepting the ticking packages I gotta defuse up in the bridge.\"</span>"
+						src.say_verb("The post office, an unused room habited by a brainless monkey, a cynical postman, and now, me.")
+						sleep(1 SECONDS)
+						src.say_verb("I've never trusted postal workers, with their crisp blue suits and their peaked caps.")
+						sleep(0.5 SECONDS)
+						src.say_verb("There's never any mail sent, excepting the ticking packages I gotta defuse up in the bridge.")
 					else if (istype(src.loc.loc, /area/centcom))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"Central Command. I was tired as hell but I could afford to be tired now... I needed it to be morning. I wanted to hear doors opening, cars start, and human voices talking about the Space Olympics. I wanted to make sure there were still folks out there facing life with nothing up their sleeves but their arms. They didn't know it yet, but they had a better shot at happiness and a fair shake than they did yesterday.\"</span>"
+						src.say_verb("Central Command.")
+						sleep(1 SECONDS)
+						src.say_verb("I was tired as hell but I could afford to be tired now...")
+						sleep(1 SECONDS)
+						src.say_verb("I needed it to be morning.")
+						sleep(0.7 SECONDS)
+						src.say_verb("I wanted to hear doors opening, cars start, and human voices talking about the Space Olympics.")
+						sleep(0.7 SECONDS)
+						src.say_verb("I wanted to make sure there were still folks out there facing life with nothing up their sleeves but their arms.")
+						sleep(1 SECONDS)
+						src.say_verb("They didn't know it yet, but they had a better shot at happiness and a fair shake than they did yesterday.")
 					else if (istype(src.loc.loc, /area/station/chapel))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"The self-pontificating bastard who calls himself our chaplain conducts worship here. If you can call the summoning of an angry god who pelts us with toolboxes, bolts of lightning, and occasionally rips our bodies in twain 'worship'.\"</span>"
+						src.say_verb("The self-pontificating bastard who calls himself our chaplain conducts worship here.")
+						sleep(0.5 SECONDS)
+						src.say_verb("If you can call the summoning of an angry god who pelts us with toolboxes, bolts of lightning, and occasionally rips our bodies in twain 'worship'.")
 					else if (istype(src.loc.loc, /area/station/bridge))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"The bridge. The home of the Captain and Head of Personnel. I tried to tell myself I was the sturdy leg in our little triangle. I was worried it was true.\"</span>"
+						src.say_verb("The bridge.")
+						sleep(1 SECONDS)
+						src.say_verb("The home of the Captain and Head of Personnel.")
+						sleep(0.6 SECONDS)
+						src.say_verb("I tried to tell myself I was the sturdy leg in our little triangle.")
+						sleep(1 SECONDS)
+						src.say_verb("I was worried it was true.")
 					else if (istype(src.loc.loc, /area/station/security/main))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"I had dreams of being security before I got into the detective game. I wanted to meet stimulating and interesting people of an ancient space culture, and kill them. I wanted to be the first kid on my ship to get a confirmed kill.\"</span>"
+						src.say_verb("I had dreams of being security before I got into the detective game.")
+						sleep(1 SECONDS)
+						src.say_verb("I wanted to meet stimulating and interesting people of an ancient space culture, and kill them.")
+						sleep(0.7 SECONDS)
+						src.say_verb("I wanted to be the first kid on my ship to get a confirmed kill.")
 					else if (istype(src.loc.loc, /area/station/crew_quarters/bar))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"The station bar, full of the best examples of lowlifes and drunks I'll ever find. I need a drink though, and there are no better places to find a beer than here.\"</span>"
+						src.say_verb("The station bar, full of the best examples of lowlifes and drunks I'll ever find.")
+						sleep(0.7 SECONDS)
+						src.say_verb("I need a drink though, and there are no better places to find a beer than here.")
 					else if (istype(src.loc.loc, /area/station/medical))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"Medical. In truth it's full of the biggest bunch of cut throats on the station, most would rather cut you up than sow you up, but if I've got a slug in my ass, I don't have much choice.\"</span>"
+						src.say_verb("Medical.")
+						sleep(0.8 SECONDS)
+						src.say_verb("In truth it's full of the biggest bunch of cut throats on the station, most would rather cut you up than sow you up, but if I've got a slug in my ass, I don't have much choice.")
 					else if (istype(src.loc.loc, /area/station/hallway/primary/))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"The halls of the station assault my nostrils like a week old meal left festering in the sink. A thug around every corner, and reason enough themselves to keep my gun in my hand.\"</span>"
+						src.say_verb("The halls of the station assault my nostrils like a week old meal left festering in the sink.")
+						sleep(0.8 SECONDS)
+						src.say_verb("A thug around every corner, and reason enough themselves to keep my gun in my hand.")
 					else if (istype(src.loc.loc, /area/station/hallway/secondary/exit))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"The only way off this hellhole and it's the one place I don't want to be, but sometimes you have to show your friends that you're worth a damn. Sometimes that means dying, sometimes it means killing a whole lot of people to escape alive.\"</span>"
+						src.say_verb("The only way off this hellhole and it's the one place I don't want to be, but sometimes you have to show your friends that you're worth a damn.")
+						sleep(0.8 SECONDS)
+						src.say_verb("Sometimes that means dying, sometimes it means killing a whole lot of people to escape alive.")
 					else if (istype(src.loc.loc, /area/station/hallway/secondary/entry))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"The entrance to [station_name(1)]. You will never find a more wretched hive of scum and villainy. I must be cautious.\"</span>"
+						src.say_verb("The entrance to [station_name(1)].")
+						sleep(0.6 SECONDS)
+						src.say_verb("You will never find a more wretched hive of scum and villainy.")
+						sleep(0.7 SECONDS)
+						src.say_verb("I must be cautious.")
 					else if (istype(src.loc.loc, /area/station/engine/))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"The churning, hellish heart of the station that just can't help missing the beat. Full of the dregs of society, and not the right place to be caught unwanted. I better watch my back.\"</span>"
+						src.say_verb("The churning, hellish heart of the station that just can't help missing the beat.")
+						sleep(0.7 SECONDS)
+						src.say_verb("Full of the dregs of society, and not the right place to be caught unwanted.")
+						sleep(0.5 SECONDS)
+						src.say_verb("I better watch my back.")
 					else if (istype(src.loc.loc, /area/station/maintenance/disposal))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"Disposal. Usually bloodied, full of grey-suited corpses and broken windows. Down here, you can hear the quiet moaning of the station itself. It's like it's mourning. Mourning better days long gone, like assistants through these pipes.\"</span>"
+						src.say_verb("Disposal.")
+						sleep(1 SECONDS)
+						src.say_verb("Usually bloodied, full of grey-suited corpses and broken windows.")
+						sleep(0.6 SECONDS)
+						src.say_verb("Down here, you can hear the quiet moaning of the station itself.")
+						sleep(1 SECONDS)
+						src.say_verb("It's like it's mourning.")
+						sleep(0.6 SECONDS)
+						src.say_verb("Mourning better days long gone, like assistants through these pipes.")
 					else if (istype(src.loc.loc, /area/station/crew_quarters/cafeteria))
-						message = "<span style=\"color:black\"><B>[src]</B> says, \"A place to eat, but not an appealing one. I've heard rumours about this place, and if there's one thing I know, it's that it's not normal to eat people.\"</span>"
+						src.say_verb("A place to eat, but not an appealing one.")
+						sleep(0.6 SECONDS)
+						src.say_verb("I've heard rumours about this place, and if there's one thing I know, it's that it's not normal to eat people.")
 					else if (istype(src.wear_mask, /obj/item/clothing/mask/cigarette))
 						message = "<B>[src]</B> takes a drag on [his_or_her(src)] cigarette, surveying the scene around them carefullly."
 					else
-						message = "<B>[src]</B> looks uneasy, like [src.gender == MALE ? "" : "s"]he's missing a vital part of h[src.gender == MALE ? "im" : "er"]self. [src.gender == MALE ? "H" : "Sh"]e needs a smoke badly."
+						message = "<B>[src]</B> looks uneasy, like [hes_or_shes(src)] missing a vital part of [himself_or_herself(src)]. [capitalize(he_or_she(src))] needs a smoke badly."
 
 				else
 					message = "<B>[src]</B> tries to say something clever, but just can't pull it off looking like that."
@@ -1720,6 +1817,7 @@
 					if(istype(I, /obj/item/card/id/dabbing_license)) // if we are using a dabbing license, save it so we can increment stats
 						dab_id = I
 						dab_id.dab_count++
+						dab_id.tooltip_rebuild = 1
 					karma_update(4, "SIN", src)
 					if(!dab_id && locate(/obj/machinery/bot/secbot/beepsky) in view(7, get_turf(src)))
 						// determine the name of the perp (goes by ID if wearing one)

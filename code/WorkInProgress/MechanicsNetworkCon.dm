@@ -24,6 +24,11 @@
 
 	var/ready = 1
 
+	get_desc()
+		. += {"<br><span class='notice'>[self_only ? "Only receiving signals addressed to [net_id]":"Receiving all signals regardless of address_1."]<br>
+		[register ? "Registering with mainframes.":"Not registering with mainframes."]<br>
+		Current NetID: [net_id]</span>"}
+
 	New()
 		. = ..()
 		src.net_id = generate_net_id(src)
@@ -54,18 +59,20 @@
 				if("Toggle Self-Only Messages")
 					self_only = !self_only
 					boutput(usr, "[self_only ? "Now only processing messages adressed at us.":"Now processing all messages recieved."]")
+					tooltip_rebuild = 1
 				if("Toggle Mainframe Registration")
 					register = !register
 					boutput(usr, "[register ? "Now registering with mainframes.":"Now no longer registering with mainframes."]")
+					tooltip_rebuild = 1
 
 	proc/spacket(var/datum/mechanicsMessage/input)
 		if(!ready) return
 		ready = 0
 		SPAWN_DBG(0.4 SECONDS) ready = 1
-		post_raw(input.signal)
+		post_raw(input.signal, input.data_file?.copy_file())
 		return
 
-	proc/post_raw(var/rawstring)
+	proc/post_raw(var/rawstring, var/datum/computer/file/data_file=null)
 		if(!src.link)
 			return
 
@@ -77,6 +84,9 @@
 
 		for(var/x in inputlist)
 			signal.data[x] = inputlist[x]
+
+		if(data_file)
+			signal.data_file = data_file
 
 		src.link.post_signal(src, signal)
 
@@ -106,28 +116,10 @@
 		var/dataStr = ""//list2params(S.data)  Using list2params() will result in weird glitches if the data already contains a set of params, like in terminal comms
 		for(var/i in S.data)
 			dataStr += "[i][isnull(S.data[i]) ? ";" : "=[S.data[i]];"]"
-		var/datum/mechanicsMessage/msg = mechanics.newSignal(dataStr)
+		var/datum/mechanicsMessage/msg = mechanics.newSignal(dataStr, S.data_file?.copy_file())
 		mechanics.fireOutgoing(msg)
 		animate_flash_color_fill(src,"#00AA00",1, 1)
 		return
-
-	proc/post_file(var/target_id, var/key, var/value, var/file)
-		if(!src.link || !target_id)
-			return
-
-		var/datum/signal/signal = get_free_signal()
-		signal.source = src
-		signal.transmission_method = TRANSMISSION_WIRE
-		signal.data[key] = value
-		if(file)
-			var/datum/computer/file/F = file
-			signal.data_file = F.copy_file()
-
-		signal.data["address_1"] = target_id
-		signal.data["command"] = "term_file"
-		signal.data["sender"] = src.net_id
-
-		src.link.post_signal(src, signal)
 
 	disposing()
 		if(src.link)

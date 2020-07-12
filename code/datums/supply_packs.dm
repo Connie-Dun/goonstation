@@ -664,11 +664,13 @@
 	name = "Comedy Equipment"
 	desc = "Entertainers burn bright but die young, outfit a new one with this crate!"
 	category = "Civilian Department"
-	contains = list(/obj/item/storage/box/costume/clown,
-					/obj/item/instrument/bikehorn,
-					/obj/item/bananapeel,
-					/obj/item/reagent_containers/food/snacks/pie/cream,
-					/obj/item/storage/box/balloonbox)
+	contains = list(
+		/obj/item/storage/box/costume/clown/recycled,
+		/obj/item/instrument/bikehorn,
+		/obj/item/bananapeel,
+		/obj/item/reagent_containers/food/snacks/pie/cream,
+		/obj/item/storage/box/balloonbox,
+	)
 	cost = 500
 	containertype = /obj/storage/crate/packing
 	containername = "Comedy Equipment"
@@ -1006,6 +1008,18 @@
 	cost = 2000
 	containertype = /obj/storage/crate/packing
 	containername = "Shoe Crate"
+
+/datum/supply_packs/kendo
+	name = "Kendo Crate"
+	desc = "A crate containing two full sets of kendo equipment."
+	contains = list(/obj/item/clothing/head/helmet/men = 2,
+					/obj/item/clothing/suit/armor/douandtare = 2,
+					/obj/item/clothing/gloves/kote = 2,
+					/obj/item/shinai_bag,
+					/obj/item/storage/box/kendo_box/hakama)
+	cost = 5000
+	containertype = /obj/storage/crate/wooden
+	containername = "Kendo Crate"
 
 /datum/supply_packs/sponge
 	name = "Sponge Capsule Crate"
@@ -1561,3 +1575,12 @@
 	cost = 5000
 	containertype = /obj/storage/crate/wooden
 	containername = "Printing Press Crate"
+
+/datum/supply_packs/percussion_band_kit
+	name = "Percussion Band Kit"
+	desc = "1x Tambourine, 1x Cowbell, 1x Triangle"
+	category = "Civilian Department"
+	cost = 2000
+	containername = "Percussion Band Kit"
+	contains = list(/obj/item/instrument/tambourine,/obj/item/instrument/triangle,/obj/item/instrument/cowbell)
+	containertype = /obj/storage/crate/wooden

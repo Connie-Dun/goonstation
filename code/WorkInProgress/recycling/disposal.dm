@@ -196,6 +196,7 @@
 	desc = "An underfloor disposal pipe."
 	anchored = 1
 	density = 0
+	text = ""
 
 	level = 1			// underfloor only
 	var/dpdir = 0		// bitmask of pipe directions
@@ -884,6 +885,9 @@
 
 			if(doSuperLoaf)
 				for (var/atom/movable/O2 in H)
+					if(ismob(O2))
+						var/mob/M = O2
+						M.ghostize()
 					qdel(O2)
 					H.contents -= O2
 					O2 = null
@@ -979,7 +983,7 @@
 							poorSoul:emote("scream")
 						sleep(0.5 SECONDS)
 						poorSoul.death()
-						if ((poorSoul.mind || poorSoul.client) && !istype(poorSoul, /mob/living/carbon/human/npc))
+						if (poorSoul.mind || poorSoul.client)
 							poorSoul.ghostize()
 					else if (isitem(newIngredient))
 						var/obj/item/I = newIngredient
@@ -1759,7 +1763,7 @@
 
 	var/message = null
 	var/mailgroup = null
-	var/mailgroup2 = null
+	var/mailgroup2 = null //Do not refactor into a list, maps override these properties
 	var/net_id = null
 	var/frequency = 1149
 	var/datum/radio_frequency/radio_connection

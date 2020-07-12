@@ -642,7 +642,7 @@ datum
 
 			reaction_obj(var/obj/item/O, var/volume)
 				src = null
-				if (istype(O) && prob(40))
+				if (istype(O) && prob(80))
 					if (O.burning)
 						O.burning = 0
 				return
@@ -653,7 +653,10 @@ datum
 					var/mob/living/L = M
 					if (istype(L) && L.getStatusDuration("burning"))
 						L.changeStatus("burning", -300)
+						playsound(get_turf(L), "sound/impact_sounds/burn_sizzle.ogg", 50, 1, pitch = 0.8)
 					if (istype(L,/mob/living/critter/fire_elemental))
+						L.changeStatus("weakened",0.5 SECONDS)
+						L.force_laydown_standup()
 						L.TakeDamage("All", volume * 1.5, 0, 0, DAMAGE_BLUNT)
 						playsound(get_turf(L), "sound/impact_sounds/burn_sizzle.ogg", 50, 1, pitch = 0.5)
 				return
@@ -1701,9 +1704,7 @@ datum
 						if (hugTarget == M)
 							continue
 						if (!hugTarget.stat)
-
-							M.visible_message("<span class='alert'>[M] [prob(5) ? "awkwardly side-" : ""]hugs [hugTarget]!</span>")
-
+							M.emote(prob(5)?"sidehug [hugTarget]":"hug [hugTarget]")
 							break
 
 				..()
@@ -1990,6 +1991,8 @@ datum
 							otherReagents = TRUE
 					if(!otherReagents)
 						// we ate them all, time to die
+						if(holder?.my_atom?.material?.mat_id == "gnesis") // gnesis material prevents coag. gnesis from evaporating
+							return
 						holder.remove_reagent(id, conversion_rate)
 
 			// let's put more teeth into this.
@@ -2747,9 +2750,7 @@ datum
 			on_mob_life(mob/M, var/mult = 1)
 
 				if (prob(10))
-					var/datum/effects/system/spark_spread/s = unpool(/datum/effects/system/spark_spread)
-					s.set_up(5, 1, get_turf(M))
-					s.start()
+					elecflash(M)
 				..()
 
 			do_overdose(var/severity, var/mob/M, var/mult = 1)
@@ -2967,6 +2968,7 @@ datum
 			hygiene_value = -2
 			hunger_value = 0.068
 			viscosity = 0.4
+			depletion_rate = 0
 
 			pooled()
 				..()
@@ -3030,6 +3032,7 @@ datum
 						var/datum/pathogen/P = src.pathogens[uid]
 						logTheThing("pathology", M, null, "metabolizing [src] containing pathogen [P].")
 						M.infected(P)
+				..()
 
 /* this begs the question how bloodbags worked at all if this was a thing
 				if (holder.has_reagent("dna_mutagen")) //If there's stable mutagen in the mix and it doesn't have data we gotta give it a chance to get some
@@ -3068,14 +3071,16 @@ datum
 			minimum_reaction_temperature = T0C + 50
 
 			reaction_temperature(exposed_temperature, exposed_volume)
-				if (holder.my_atom)
-					for (var/mob/O in AIviewers(get_turf(holder.my_atom), null))
-						boutput(O, "<span class='alert'>The blood tries to climb out of [holder.my_atom] before sizzling away!</span>")
-				else
-					var/list/covered = holder.covered_turf()
-					for(var/turf/t in covered)
-						for (var/mob/O in AIviewers(t, null))
-							boutput(O, "<span class='alert'>The blood reacts, attempting to escape the heat before sizzling away!</span>")
+				var/list/covered = holder.covered_turf()
+				if(length(covered) < 9 || prob(2)) // no spam pls
+					if (holder.my_atom)
+						for (var/mob/O in AIviewers(get_turf(holder.my_atom), null))
+							boutput(O, "<span class='alert'>The blood tries to climb out of [holder.my_atom] before sizzling away!</span>")
+					else
+						for(var/turf/t in covered)
+							for (var/mob/O in AIviewers(t, null))
+								boutput(O, "<span class='alert'>The blood reacts, attempting to escape the heat before sizzling away!</span>")
+
 				holder.del_reagent(id)
 
 

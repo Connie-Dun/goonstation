@@ -49,6 +49,9 @@
 	var/last_stam_change = 0
 	var/life_context = "begin"
 
+
+	var/last_no_gravity = 0
+
 	proc/add_lifeprocess(type)
 		var/datum/lifeprocess/L = new type(src)
 		lifeprocesses[type] = L
@@ -56,10 +59,11 @@
 	proc/remove_lifeprocess(type)
 		for (var/thing in lifeprocesses)
 			if (thing)
-				var/datum/lifeprocess/L = thing
-				if (L.type == type)
-					lifeprocesses -= L
-				qdel(L)
+				if (thing == type)
+					var/datum/lifeprocess/L = lifeprocesses[thing]
+					lifeprocesses -= thing
+					qdel(L)
+					L = null
 
 	proc/get_heat_protection()
 		.= 0
@@ -87,7 +91,7 @@
 	add_lifeprocess(/datum/lifeprocess/blindness)
 	add_lifeprocess(/datum/lifeprocess/blood)
 	//add_lifeprocess(/datum/lifeprocess/bodytemp) //maybe enable per-critter
-	add_lifeprocess(/datum/lifeprocess/breath)
+	//add_lifeprocess(/datum/lifeprocess/breath) //most of them cant even wear internals
 	add_lifeprocess(/datum/lifeprocess/canmove)
 	add_lifeprocess(/datum/lifeprocess/chems)
 	add_lifeprocess(/datum/lifeprocess/disability)
@@ -99,6 +103,7 @@
 	add_lifeprocess(/datum/lifeprocess/skin)
 	add_lifeprocess(/datum/lifeprocess/statusupdate)
 	add_lifeprocess(/datum/lifeprocess/stuns_lying)
+	add_lifeprocess(/datum/lifeprocess/viruses)
 
 /mob/living/carbon/human/New()
 	..()
@@ -175,7 +180,7 @@
 	if (src.transforming)
 		return 1
 
-	var/life_time_passed = max(tick_spacing, world.timeofday - last_life_tick)
+	var/life_time_passed = max(tick_spacing, TIME - last_life_tick)
 
 	// Jewel's attempted fix for: null.return_air()
 	// These objects should be garbage collected the next tick, so it's not too bad if it's not breathing I think? I might be totallly wrong here.
@@ -204,19 +209,20 @@
 			//do on_life things for components?
 			SEND_SIGNAL(src, COMSIG_HUMAN_LIFE_TICK, (life_time_passed / tick_spacing))
 
-			if(src.no_gravity)
-				src.no_gravity = 0
-				animate(src, transform = matrix(), time = 1)
+			if (last_no_gravity != src.no_gravity)
+				if(src.no_gravity)
+					animate_levitate(src, -1, 10, 1)
+				else
+					src.no_gravity = 0
+					animate(src, transform = matrix(), time = 1)
+				last_no_gravity = src.no_gravity
 
-			for (var/obj/item/I in src)
-				if (I.no_gravity)
-					src.no_gravity = 1
-				if (!I.material)
-					continue
-				I.material.triggerOnLife(src, I)
-
-			if(src.no_gravity)
-				animate_levitate(src, -1, 10, 1)
+/*
+			for (var/thing in src) //not worth the CPU, nothing even uses this stuff
+				var/atom/movable/A = thing
+				if (A.material)
+					A.material.triggerOnLife(src, A)
+*/
 
 		clamp_values()
 
@@ -261,30 +267,7 @@
 				if (found)
 					src.changeStatus("revspirit", 20 SECONDS)
 
-
 		if (src.abilityHolder)
-			//MBC : update countdowns on topbar screen abilities
-			var/show = 1
-			if (ishuman(src))//FUCKKK FIX THIS
-				var/mob/living/carbon/human/H = src
-				show = (H.hud.current_ability_set == 1)
-			if (show)
-				if (istype(src.abilityHolder,/datum/abilityHolder/composite))
-					var/datum/abilityHolder/composite/composite = src.abilityHolder
-					for (var/datum/abilityHolder/H in composite.holders)
-						for(var/datum/targetable/B in H.abilities)
-							if (B.display_available())
-								var/obj/screen/ability/topBar/button = B.object
-								if (istype(B))
-									button.update_on_hud(button.last_x, button.last_y)
-				else
-					for(var/datum/targetable/B in src.abilityHolder.abilities)
-						if (B.display_available())
-							var/obj/screen/ability/topBar/button = B.object
-							if (istype(B))
-								button.update_on_hud(button.last_x, button.last_y)
-
-
 			src.abilityHolder.onLife((life_time_passed / tick_spacing))
 
 	last_life_tick = TIME
@@ -299,13 +282,13 @@
 	if (..(parent))
 		return 1
 
-	var/mult = (max(tick_spacing, world.timeofday - last_human_life_tick) / tick_spacing)
+	var/mult = (max(tick_spacing, TIME - last_human_life_tick) / tick_spacing)
 
 	if (farty_party)
 		src.emote("fart")
 
 	//Attaching a limb that didn't originally belong to you can do stuff
-	if(prob(2) && src.limbs)
+	if(!isdead(src) && prob(2) && src.limbs)
 		if(src.limbs.l_arm && istype(src.limbs.l_arm, /obj/item/parts/human_parts/arm/))
 			var/obj/item/parts/human_parts/arm/A = src.limbs.l_arm
 			if(A.original_holder && src != A.original_holder)
@@ -631,8 +614,6 @@
 				for (var/uid in src.pathogens)
 					var/datum/pathogen/P = src.pathogens[uid]
 					P.disease_act_dead()
-					if (prob(5))
-						src.cured(P)
 			return
 		for (var/uid in src.pathogens)
 			var/datum/pathogen/P = src.pathogens[uid]

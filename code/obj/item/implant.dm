@@ -153,8 +153,7 @@ THROWING DARTS
 	var/healthstring = ""
 
 	var/message = null
-	var/mailgroup = "medbay"
-	var/mailgroup2 = "medresearch"
+	var/list/mailgroups = list(MGD_MEDBAY, MGD_MEDRESEACH, MGD_SPIRITUALAFFAIRS)
 	var/net_id = null
 	var/frequency = 1149
 	var/datum/radio_frequency/radio_connection
@@ -168,6 +167,7 @@ THROWING DARTS
 				src.net_id = generate_net_id(src)
 	disposing()
 		radio_controller.remove_object(src, "[frequency]")
+		mailgroups.Cut()
 		..()
 
 	implanted(mob/M, mob/I)
@@ -275,7 +275,9 @@ THROWING DARTS
 
 	proc/send_message()
 		DEBUG_MESSAGE("sending message: [src.message]")
-		if (message && mailgroup && radio_connection)
+		if(!radio_connection)
+			return
+		for(var/mailgroup in mailgroups)
 			var/datum/signal/newsignal = get_free_signal()
 			newsignal.source = src
 			newsignal.transmission_method = TRANSMISSION_RADIO
@@ -290,25 +292,12 @@ THROWING DARTS
 			radio_connection.post_signal(src, newsignal)
 			//DEBUG_MESSAGE("message sent to [src.mailgroup]")
 
-		if (message && mailgroup2 && radio_connection)
-			var/datum/signal/newsignal = get_free_signal()
-			newsignal.source = src
-			newsignal.transmission_method = TRANSMISSION_RADIO
-			newsignal.data["command"] = "text_message"
-			newsignal.data["sender_name"] = "HEALTH-MAILBOT"
-			newsignal.data["message"] = "[src.message]"
-
-			newsignal.data["address_1"] = "00000000"
-			newsignal.data["group"] = mailgroup2
-			newsignal.data["sender"] = src.net_id
-
-			radio_connection.post_signal(src, newsignal)
-			//DEBUG_MESSAGE("message sent to [src.mailgroup2]")
-
 /obj/item/implant/health/security
 	name = "health implant - security issue"
-	mailgroup = "medbay"
-	mailgroup2 = "security"
+	
+	New()
+		mailgroups.Add(MGD_SECURITY)
+		..()
 
 /obj/item/implant/freedom
 	name = "freedom implant"
@@ -870,6 +859,7 @@ var/global/list/tracking_implants = list() // things were looping through world 
 	impcolor = "g"
 	var/uses = 8
 	var/obj/item/card/id/access = new /obj/item/card/id
+	tooltip_flags = REBUILD_DIST
 
 	get_desc(dist)
 		if (dist <= 1)
@@ -883,6 +873,7 @@ var/global/list/tracking_implants = list() // things were looping through world 
 			return 0
 		else
 			uses -= 1
+			tooltip_rebuild = 1
 		return 1
 
 	infinite
@@ -919,6 +910,7 @@ var/global/list/tracking_implants = list() // things were looping through world 
 	w_class = 2.0
 	hide_attack = 2
 	var/sneaky = 0
+	tooltip_flags = REBUILD_DIST
 
 	New()
 		..()
@@ -930,6 +922,7 @@ var/global/list/tracking_implants = list() // things were looping through world 
 			. += "It appears to contain \a [src.imp.name]."
 
 	proc/update()
+		tooltip_rebuild = 1
 		if (src.imp)
 			src.icon_state = src.imp.impcolor ? "implanter1-[imp.impcolor]" : "implanter1-g"
 		else
@@ -1127,6 +1120,7 @@ var/global/list/tracking_implants = list() // things were looping through world 
 	throw_range = 5
 	w_class = 1.0
 	var/implant_type = /obj/item/implant/tracking
+	tooltip_flags = REBUILD_DIST
 
 /obj/item/implantcase/tracking
 	name = "glass case - 'Tracking'"
@@ -1209,6 +1203,7 @@ var/global/list/tracking_implants = list() // things were looping through world 
 		. += "It appears to contain \a [src.imp.name]."
 
 /obj/item/implantcase/proc/update()
+	tooltip_rebuild = 1
 	if (src.imp)
 		src.icon_state = src.imp.impcolor ? "implantcase-[imp.impcolor]" : "implantcase-g"
 	else
@@ -1227,6 +1222,7 @@ var/global/list/tracking_implants = list() // things were looping through world 
 			src.name = "glass case - '[t]'"
 		else
 			src.name = "glass case"
+		tooltip_rebuild = 1
 		return
 	else if (istype(I, /obj/item/implanter))
 		var/obj/item/implanter/Imp = I
@@ -1504,6 +1500,7 @@ circuitry. As a result neurotoxins can cause massive damage.<BR>
 				return
 
 			my_implant = I
+			tooltip_rebuild = 1
 
 			if (istype(W, /obj/item/implant))
 				user.u_equip(W)
@@ -1548,6 +1545,7 @@ circuitry. As a result neurotoxins can cause massive damage.<BR>
 			return ..()
 		my_implant.set_loc(P)
 		my_implant = null
+		tooltip_rebuild = 1
 
 /datum/projectile/implanter
 	name = "implant bullet"

@@ -81,6 +81,7 @@
 	anchored = 1
 	layer = EFFECTS_LAYER_UNDER_1
 	plane = PLANE_NOSHADOW_ABOVE
+	text = ""
 	var/on = 0 // 1 if on, 0 if off
 	var/brightness = 1.6 // luminosity when on, also used in power calculation
 	var/light_status = LIGHT_OK	// LIGHT_OK, _EMPTY, _BURNED or _BROKEN
@@ -131,17 +132,44 @@
 				for (var/dir in cardinal)
 					T = get_step(src,dir)
 					if (istype(T,/turf/simulated/wall) || (locate(/obj/wingrille_spawn) in T) || (locate(/obj/window) in T))
+						var/is_jen_wall = 0 // jen walls' ceilings are narrower, so let's move the lights a bit further inward!
+						if (istype(T, /turf/simulated/wall/auto/jen) || istype(T, /turf/simulated/wall/auto/reinforced/jen))
+							is_jen_wall = 1
 						src.dir = dir
 						if (dir == EAST)
-							src.pixel_x = 10
+							if (is_jen_wall)
+								src.pixel_x = 12
+							else
+								src.pixel_x = 10
 						else if (dir == WEST)
-							src.pixel_x = -10
+							if (is_jen_wall)
+								src.pixel_x = -12
+							else
+								src.pixel_x = -10
 						else if (dir == NORTH)
-							src.pixel_y = 21
+							if (is_jen_wall)
+								src.pixel_y = 24
+							else
+								src.pixel_y = 21
 						break
 				T = null
 
 
+
+//big standing lamps
+/obj/machinery/light/blamp
+	name = "big lamp"
+	icon = 'icons/obj/lighting.dmi'
+	desc = "A tall and thin lamp that rests comfortably on the floor."
+	anchored = 1
+	light_type = /obj/item/light/bulb
+	allowed_type = /obj/item/light/bulb
+	fitting = "bulb"
+	light_name = "light bulb"
+	brightness = 1.4
+	var/state
+	icon_state = "blamp1-off"
+	wallmounted = 0
 
 //regular light bulbs
 /obj/machinery/light/small
@@ -498,9 +526,7 @@
 				icon_state = "[base_state]-burned"
 				on = 0
 				light.disable()
-				var/datum/effects/system/spark_spread/s = unpool(/datum/effects/system/spark_spread)
-				s.set_up(3, 1, src)
-				s.start()
+				elecflash(src)
 				logTheThing("station", null, null, "Light '[name]' burnt out (breakprob: [breakprob]) at ([showCoords(src.x, src.y, src.z)])")
 
 
@@ -623,6 +649,7 @@
 		if(prob(1+W.force * 5))
 
 			boutput(user, "You hit the light, and it smashes!")
+			logTheThing("station", user, null, "smashes a light at [log_loc(src)]")
 			for(var/mob/M in AIviewers(src))
 				if(M == user)
 					continue
@@ -658,9 +685,7 @@
 
 		boutput(user, "You stick \the [W.name] into the light socket!")
 		if(has_power() && (W.flags & CONDUCT))
-			var/datum/effects/system/spark_spread/s = unpool(/datum/effects/system/spark_spread)
-			s.set_up(3, 1, src)
-			s.start()
+			elecflash(user)
 			if(!user.bioHolder.HasEffect("resist_electric"))
 				src.electrocute(user, 75, null, 20000)
 
@@ -760,9 +785,7 @@
 	if(!nospark)
 		if(on)
 			logTheThing("station", null, null, "Light '[name]' was on and has been broken, spewing sparks everywhere ([showCoords(src.x, src.y, src.z)])")
-			var/datum/effects/system/spark_spread/s = unpool(/datum/effects/system/spark_spread)
-			s.set_up(3, 1, src)
-			s.start()
+			elecflash(src,radius = 1, power = 2)
 	light_status = LIGHT_BROKEN
 	SPAWN_DBG(0)
 		update()
