@@ -716,7 +716,7 @@ proc/default_frequency_color(freq)
 #define BASE_SPEED_SUSTAINED 1.5
 #define RUN_SCALING 0.12
 #define RUN_SCALING_LYING 0.2
-#define RUN_SCALING_STAGGER 0.5
+#define RUN_SCALING_STAGGER 0.64
 #define WALK_DELAY_ADD 0.8
 
 //stamina config
@@ -1027,7 +1027,7 @@ proc/default_frequency_color(freq)
 #ifdef RP_MODE
 #define ASS_JAM 0
 #elif BUILD_TIME_DAY == 13
-#define ASS_JAM 1
+#define ASS_JAM 0
 #else
 #define ASS_JAM 0
 #endif
