@@ -226,7 +226,7 @@
 		var/obj/item/grab/block/G = new /obj/item/grab/block(I, src)
 		G.affecting = src
 		src.grabbed_by += G
-		G.set_loc(I)
+		G.loc = I
 
 		I.chokehold = G
 		I.chokehold.post_item_setup()
@@ -303,7 +303,7 @@
 		G.assailant = src
 		G.affecting = target
 		target.grabbed_by += G
-		G.set_loc(grab_item)
+		G.loc = grab_item
 		.= G
 
 	for (var/obj/item/grab/block/G in target.equipped_list(check_for_magtractor = 0)) //being grabbed breaks a block
@@ -1251,8 +1251,7 @@
 				var/turf/T = get_edge_target_turf(src, src.dir)
 				if (isturf(T))
 					src.visible_message("<span class='alert'><B>[src] savagely punches [target], sending them flying!</B></span>")
-					SPAWN_DBG (0)
-						target.throw_at(T, 10, 2)
+					target.throw_at(T, 10, 2)
 
 	if (src.bioHolder.HasEffect("revenant"))
 		var/datum/bioEffect/hidden/revenant/R = src.bioHolder.GetEffect("revenant")
@@ -1285,8 +1284,7 @@
 	T.changeStatus("weakened", 5 SECONDS)
 	var/turf/throwpoint = get_edge_target_turf(H, get_dir(H, T))
 	if (throwpoint && isturf(throwpoint))
-		SPAWN_DBG(0)
-			T.throw_at(throwpoint, 10, 2)
+		T.throw_at(throwpoint, 10, 2)
 
 	return
 

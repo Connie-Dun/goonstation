@@ -588,6 +588,31 @@
 		message = owotalk(message)
 		return message
 
+/datum/bioEffect/speech/uwuwhatsthis //God is Dead
+	// okay this one is less creepy/weird than the owo one because it
+	// doesn't have the awkward prefix/suffixes. It's more like an actual accent.
+	// And also horrible.
+	name = "Frontal Gyrus Alteration Type-U"
+	desc = "Reconstructs the language center of the subject's brain to create less threatening speech patterns."
+	id = "accent_uwu"
+	effectType = EFFECT_TYPE_DISABILITY
+	isBad = 1
+	msgGain = "Oh nyo. uwu"
+	msgLose = "Nyo more funny talking."
+	probability = 10 // yes... ha ha ha... YES
+	reclaim_fail = 10
+	lockProb = 25
+	lockedGaps = 2
+	lockedDiff = 2
+	lockedChars = list("G","C")
+	lockedTries = 3
+
+	OnSpeak(var/message)
+		if (!istext(message))
+			return ""
+		message = uwutalk(message)
+		return message
+
 /datum/bioEffect/speech/literalowotalk
 	name = "Frontal Gyrus Alteration Type-OWO"
 	desc = "Reconstructs the language center of the subject's brain, shutting most of it down and allowing for a very limited functionality."
@@ -673,3 +698,23 @@
 		message = yorkify(message)
 		return message
 
+/datum/bioEffect/speech/scoob
+	name = "Frontal Gyrus Alteration Type-SD"
+	desc = "Forces the language center of the subject's brain to bark out sentences like a dog."
+	id = "accent_scoob"
+	effectType = EFFECT_TYPE_DISABILITY
+	isBad = 1
+	msgGain = "You feel like you've got some work to do now."
+	msgLose = "You feel like you've found yourself."
+	reclaim_fail = 10
+	lockProb = 25
+	lockedGaps = 2
+	lockedDiff = 2
+	lockedChars = list("G","C")
+	lockedTries = 3
+
+	OnSpeak(var/message)
+		if (!istext(message))
+			return ""
+		message = scoobify(message)
+		return message
