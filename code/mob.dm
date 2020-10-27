@@ -82,6 +82,7 @@
 	var/dizziness = 0
 	var/is_dizzy = 0
 	var/is_jittery = 0
+	var/is_zombie = 0
 	var/jitteriness = 0
 	var/charges = 0.0
 	var/urine = 0.0
@@ -153,6 +154,7 @@
 	var/speech_void = 0
 	var/now_pushing = null //temp. var used for Bump()
 	var/atom/movable/pushing = null //Keep track of something we may be pushing for speed reductions (GC Woes)
+	var/singing = 0 // true when last thing living mob said was sung, i.e. prefixed with "%""
 
 	var/movement_delay_modifier = 0 //Always applied.
 	var/apply_movement_delay_until = -1 //world.time at which our movement delay modifier expires
@@ -2241,6 +2243,7 @@
 	src.delStatus("slowed")
 	src.delStatus("burning")
 	src.delStatus("radiation")
+	src.delStatus("n_radiation")
 	src.change_eye_blurry(-INFINITY)
 	src.take_eye_damage(-INFINITY)
 	src.take_eye_damage(-INFINITY, 1)
