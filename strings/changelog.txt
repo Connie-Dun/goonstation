@@ -1,4 +1,179 @@
 
+(t)fri nov 20 20
+(u)TTerc
+(p)2726
+(e)🆕|feature
+(+)Mailman spawns with a custom headset now
+(u)MatheusIsNotAvailable & Retrino
+(p)2729
+(e)|
+(+)Added the ore scoop to the mining fabricator!
+(u)pali
+(p)2712
+(e)🗺🎨|mapping, sprites
+(+)Barman role renamed to Bartender
+(u)Innox
+(p)2706
+(e)🆕|feature
+(+)Allowed creating apple on a stick with rods too - take that popsicle sticks!
+(+)Allowed creating corndogs with popsicle sticks too - take that rods!
+(t)thu nov 19 20
+(u)Gannets
+(p)2742
+(e)⚖🆕🗺🎨|balance, feature, mapping, sprites
+(*)Nuclear Operative Combat Medic balance changes.
+(*)Removes donk pocket box from medic class crate.
+(*)Adds high-capacity autoinjector of donk pocket reagents to medic crate.
+(*)Adds a single warm donk pocket as a purchasable Utility item from the Syndicate Weapon Vendor on the Cairngorm.
+(+)Adds sprite for syringe gun canister.
+(+)Adds a second canister of neurotoxin to medic crate.
+(+)Removes some medkits from the Cairngorm
+(t)wed nov 18 20
+(u)Azrun
+(p)2732
+(e)🐛|bug
+(+)Furnaces easier to load.  Resolved issue where excess items in stacks would get consumed without benefit.
+(u)Chickenish
+(p)2735
+(e)🐛|bug
+(+)Pill Bottles are now able to be quick filled again.
+(u)Luxizzle
+(p)2725
+(e)⚖🆕|balance, feature
+(+)Cyborgs now twitch when being disoriented.
+(t)tue nov 17 20
+(u)kyle
+(+)Station NTSOs now only get standard security and bridge access.
+(+)Blunt bullet projectile types don't deal bleed damage. Looking at you 9mm NATO.
+(u)pali
+(p)2710
+(e)🐛|bug
+(+)VR chess now works again!
+(t)mon nov 16 20
+(u)Kyle
+(*)Fix Clock 188 bug where its shot delay while on burst mode was too low. Increase spread by 3 degrees too.
+(u)Luxizzle
+(p)2694
+(e)🆕🎨|feature, sprites
+(*)Added the Security HUD upgrade for cyborgs.
+(+)Replaced Repair Pack in brobocop module to the new Security HUD upgrade.
+(u)Chronoquest
+(p)2664
+(e)🆕|feature
+(*)6 new radio station songs
+(u)UrsulaMajor
+(e)⚖|balance
+(*)Multitools now require high energy conductive material (such as clarentine) to fabricate, to limit the number of them that are easily available to would-be hackers at round start.
+(t)sun nov 15 20
+(u)Flaborized
+(p)2695
+(e)🎨|sprites
+(*)Cyborgs and cyborg related items have a new look!
+(u)TTerc
+(p)2647
+(e)🗺|mapping
+(+)Door-linked force fields added to Cogmap 2, Atlas, Clarion and Destiny
+(u)Luxizzle
+(p)2688
+(e)🆕🎨|feature, sprites
+(*)The AI can now hold their point key (B) and click on a location to spawn a hologram.
+(u)UrsulaMajor
+(e)🆕|feature
+(*)New Chicken Breeds! See if you can find them all! (Not Secret! Feel free to share with your friends what you find out!)
+(t)sat nov 14 20
+(u)Chickenish
+(p)2659
+(e)🆕|feature
+(+)Candles are now lit by environmental heat.
+(u)Retrino
+(p)2686
+(e)🎨|sprites
+(+)Added pink and orange hat sprites, printable from uniform and hop fabricators. Adjusts the psychedelic hat
+(u)virvatuli
+(p)2689
+(e)🎨|sprites
+(+)Added a bunch of previously missing clothing sprites for monkeys
+(t)fri nov 13 20
+(u)adharainspace
+(p)2590
+(e)🆕|feature
+(+)if you run into an issue where you can't join because of a vpn and you need to use one, please join the goonstation discord (https://discord.gg/zd8t6pY) and we'll see what we can do.
+(t)thu nov 12 20
+(u)UrsulaMajor
+(e)🆕|feature
+(*)Roosters now hatch eggs.
+(t)wed nov 11 20
+(u)UrsulaMajor
+(e)🆕|feature
+(*)Roosters! They may not lay eggs, but they WILL peck your eyes out! :)
+(u)Carbadox
+(p)2651
+(e)⛔|removal
+(+)Coffee/espresso machines no longer have removeable tops and don't need to be manually refilled with water anymore. This should solve the issue with unscrewing the machine even when unintended.
+(u)adharainspace
+(p)2504
+(e)🆕|feature
+(*)makes directional lights update more consistently when you change direction
+(u)PissOffMate18
+(p)2645
+(e)|
+(+)Added the ability to cut open fireworks as a hobo source of magnesium.
+(u)Arahimine
+(p)2654
+(e)🆕|feature
+(+)AI-controlled cyborg shells now have access to the same communications channels as the AI.
+(u)Jan.antilles
+(p)2599
+(e)🎨|sprites
+(+)Replaced sprites for the salt and pepper shakers, and added new sprites for the GardenGear vending machine and the JaniTech vending machine.
+(u)CodeDude
+(p)2639
+(e)🎨|sprites
+(*)Added a new level 5 Botanist job reward, the blue apron.
+(t)tue nov 10 20
+(u)Erinexx, Flaborized, and Sovexe
+(p)2631
+(e)🆕🎨|feature, sprites
+(*)New sprites for beakers, flasks, fountain jugs, and the chemicompiler made by Erinexx and touched up by Flaborized.
+(t)mon nov 09 20
+(u)Jawns
+(p)2597
+(e)🐛🗺|bug, mapping
+(+)Upgraded escape pod portal generator teleports you to the correct escape shuttle
+(u)Carbadox
+(p)2613
+(e)🆕|feature
+(*)Added a rubber hammer as the Clowns level 10 job reward
+(t)sun nov 08 20
+(u)Arahimine
+(p)2501
+(e)🆕|feature
+(+)Cyborgs can now state their laws via the 'State Laws' and 'State Standard Laws' verbs, in the Robot Commands tab.
+(u)TTerc
+(p)2614
+(e)🗺|mapping
+(+)JaniTech vendor added to Donut 3 and Manta.
+(u)Luxizzle
+(p)2625
+(e)🐛|bug
+(+)Examining brains to see if they are still warm now only requires medical training.
+(u)Luxizzle
+(p)2615
+(e)🐛|bug
+(+)Fixed cyborg legs not showing up on humans.
+(t)sat nov 07 20
+(u)UrsulaMajor
+(p)2620
+(e)🎨|sprites
+(+)Chicken Sandwiches, Spicy and Original - Sprites by Jan!
+(u)virvatuli
+(p)2594
+(e)|
+(+)New Clock gunfire audio, sounds less like someone whacking two sticks together
+(u)UrsulaMajor
+(p)2612
+(e)|
+(*)Major Chicken Update - Look for the Nesting Box in the Garden Gear!
 (t)thu nov 05 20
 (u)Azrun
 (p)2601

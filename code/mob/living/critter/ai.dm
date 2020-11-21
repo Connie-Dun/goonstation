@@ -82,6 +82,7 @@ var/list/ai_move_scheduled = list()
 
 	proc/interrupt()
 		if(src.enabled)
+			current_task.reset()
 			current_task = default_task
 
 	proc/die()
@@ -347,6 +348,7 @@ var/list/ai_move_scheduled = list()
 
 	// next task is not defined here, handled by sequence
 	proc/failed()
+		fails++
 		return fails >= max_fails
 
 	proc/succeeded()
