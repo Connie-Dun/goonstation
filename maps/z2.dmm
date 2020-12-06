@@ -67756,22 +67756,15 @@
 /turf/unsimulated/floor/black,
 /area/syndicate_station/battlecruiser)
 "dhJ" = (
-/obj/stool/chair/couch/red{
-	dir = 8
-	},
+/obj/cairngorm_stats/left,
 /turf/unsimulated/floor/red,
 /area/syndicate_station/battlecruiser)
 "dhK" = (
-/obj/stool/chair/couch/red,
-/obj/cairngorm_stats{
-	pixel_y = 32
-	},
+/obj/cairngorm_stats,
 /turf/unsimulated/floor/red,
 /area/syndicate_station/battlecruiser)
 "dhL" = (
-/obj/stool/chair/couch/red{
-	dir = 4
-	},
+/obj/cairngorm_stats/right,
 /turf/unsimulated/floor/red,
 /area/syndicate_station/battlecruiser)
 "dhM" = (
@@ -67841,9 +67834,6 @@
 /turf/unsimulated/floor/red,
 /area/syndicate_station/battlecruiser)
 "dhV" = (
-/obj/landmark/spawner{
-	name = "monkeyspawn_syndicate"
-	},
 /obj/cable{
 	icon_state = "2-8"
 	},
@@ -75744,7 +75734,7 @@
 /obj/stool/chair/office/green{
 	dir = 1
 	},
-/obj/item/toy/plush/small/monkey/assistant,
+/obj/item/toy/plush/small/monkey/george,
 /turf/unsimulated/floor/wood/two,
 /area/centcom/offices/flourish)
 "dDx" = (
@@ -76143,7 +76133,7 @@
 "dEw" = (
 /obj/machinery/door/unpowered/wood{
 	icon = 'icons/obj/doors/door_office.dmi';
-	lock_dir = 8
+	lock_dir = 4
 	},
 /turf/unsimulated/floor/wood/two,
 /area/centcom/offices/sovexe)
@@ -82605,6 +82595,25 @@
 	},
 /turf/unsimulated/floor/shuttle,
 /area/shuttle/escape/centcom/donut3)
+"eAl" = (
+/obj/table/virtual{
+	dir = 6;
+	icon_state = "tabledir"
+	},
+/obj/item/item_box/medical_patches/mini_synthflesh{
+	name = "box of unmerged patches";
+	pixel_x = -5;
+	pixel_y = 5
+	},
+/obj/item/reagent_containers/pill/sheltestgrog{
+	pixel_x = 9;
+	pixel_y = 10
+	},
+/turf/unsimulated/floor/shuttle{
+	dir = 8;
+	icon_state = "floor6"
+	},
+/area/centcom/offices/pali)
 "eAt" = (
 /obj/machinery/door/airlock/pyro/glass/command,
 /turf/unsimulated/floor/shuttle{
@@ -82781,14 +82790,6 @@
 	},
 /turf/unsimulated/floor/wood/two,
 /area/centcom/offices/sord)
-"fxL" = (
-/obj/storage/secure/crate/gear/sarin_grenades,
-/obj/decal/tile_edge/stripe{
-	dir = 6;
-	icon_state = "delivery2"
-	},
-/turf/unsimulated/floor/darkblue,
-/area/syndicate_station/battlecruiser)
 "fCL" = (
 /obj/item/spacecash/twenty{
 	pixel_x = -12;
@@ -83060,6 +83061,16 @@
 	icon_state = "floor2"
 	},
 /area/shuttle/merchant_shuttle/diner_centcom)
+"hag" = (
+/obj/item/strange_candle{
+	pixel_x = -6;
+	pixel_y = -3
+	},
+/turf/unsimulated/floor/shuttle{
+	dir = 8;
+	icon_state = "floor6"
+	},
+/area/centcom/offices/pali)
 "hba" = (
 /obj/decal/fakeobjects/tallsmes{
 	desc = "An ultra-high-capacity superconducting magnetic energy storage (SMES) unit, except communist.";
@@ -83091,6 +83102,23 @@
 	icon_state = "wall3"
 	},
 /area/shuttle/merchant_shuttle/diner_centcom)
+"hnz" = (
+/obj/item/reagent_containers/food/snacks/plant/melon/bowling{
+	pixel_x = 9;
+	pixel_y = -3
+	},
+/obj/item/reagent_containers/food/snacks/plant/melon/bowling{
+	pixel_x = 9;
+	pixel_y = -11
+	},
+/obj/item/reagent_containers/food/snacks/plant/melon/bowling{
+	pixel_y = -10
+	},
+/turf/unsimulated/floor/shuttle{
+	dir = 8;
+	icon_state = "floor6"
+	},
+/area/centcom/offices/pali)
 "hnB" = (
 /turf/unsimulated/floor/carpet/red/fancy/narrow/northsouth,
 /area/centcom/offices/sovexe)
@@ -83262,6 +83290,16 @@
 	icon_state = "wall3dir"
 	},
 /area/shuttle/merchant_shuttle/left_centcom/destiny)
+"hVQ" = (
+/obj/machinery/door/unpowered/wood{
+	icon = 'icons/obj/doors/door_office.dmi';
+	lock_dir = 4;
+	locked = 1
+	},
+/turf/unsimulated/floor/wood/two,
+/area/centcom/offices{
+	icon_state = "blue"
+	})
 "iag" = (
 /obj/machinery/shuttle/engine/heater{
 	icon_state = "alt_heater"
@@ -83405,6 +83443,18 @@
 	icon_state = "floor2"
 	},
 /area/shuttle/merchant_shuttle/right_centcom/donut2)
+"iOu" = (
+/obj/maptext_spawner{
+	loc_maptext = "<span class='pixel c ol' style='#baff99'>WELCOME</span>";
+	loc_maptext_width = 96;
+	loc_maptext_x = 16;
+	loc_maptext_y = 16
+	},
+/turf/unsimulated/floor/shuttle{
+	dir = 8;
+	icon_state = "floor6"
+	},
+/area/centcom/offices/pali)
 "iOJ" = (
 /obj/wingrille_spawn/auto,
 /turf/unsimulated/floor/shuttle{
@@ -83773,6 +83823,17 @@
 	icon_state = "wall3"
 	},
 /area/hospital/samostrel)
+"kjV" = (
+/obj/admin_plaque{
+	name = "Pali's Office"
+	},
+/turf/unsimulated/wall{
+	icon = 'icons/misc/worlds.dmi';
+	icon_state = "leadwall"
+	},
+/area/centcom/offices{
+	icon_state = "blue"
+	})
 "kkw" = (
 /turf/unsimulated/wall/setpieces/leadwall,
 /area/centcom/retentioncenter)
@@ -84402,13 +84463,13 @@
 "ncn" = (
 /obj/machinery/door/unpowered/wood{
 	icon = 'icons/obj/doors/door_office.dmi';
-	lock_dir = 8;
-	locked = 1
+	lock_dir = 4
 	},
-/turf/unsimulated/floor/wood/two,
-/area/centcom/offices{
-	icon_state = "blue"
-	})
+/turf/unsimulated/floor/shuttle{
+	dir = 8;
+	icon_state = "floor6"
+	},
+/area/centcom/offices/pali)
 "ncu" = (
 /turf/space,
 /turf/unsimulated/floor/carpet/office,
@@ -84781,6 +84842,12 @@
 	name = "plating"
 	},
 /area/hospital/samostrel)
+"ogV" = (
+/obj/landmark/spawner{
+	name = "monkeyspawn_syndicate"
+	},
+/turf/unsimulated/floor/black,
+/area/syndicate_station/battlecruiser)
 "onw" = (
 /obj/indestructible/shuttle_corner{
 	dir = 8;
@@ -85025,6 +85092,17 @@
 /turf/space,
 /turf/unsimulated/floor/caution/south,
 /area/hospital/samostrel)
+"pkO" = (
+/obj/fakeobjects{
+	icon = 'icons/misc/critter.dmi';
+	icon_state = "roach-dead";
+	name = "squashed bug"
+	},
+/turf/unsimulated/floor/shuttle{
+	dir = 8;
+	icon_state = "floor6"
+	},
+/area/centcom/offices/pali)
 "plR" = (
 /turf/space,
 /turf/unsimulated/wall{
@@ -85082,6 +85160,20 @@
 	},
 /turf/unsimulated/floor/shuttle,
 /area/shuttle/escape/centcom/donut3)
+"pCx" = (
+/obj/table/virtual{
+	dir = 10;
+	icon_state = "tabledir"
+	},
+/obj/item/strange_candle{
+	pixel_x = -6;
+	pixel_y = 8
+	},
+/turf/unsimulated/floor/shuttle{
+	dir = 8;
+	icon_state = "floor6"
+	},
+/area/centcom/offices/pali)
 "pEf" = (
 /turf/unsimulated/wall/setpieces/leadwall{
 	dir = 1
@@ -85306,6 +85398,16 @@
 /turf/space,
 /turf/unsimulated/floor/blackwhite/whitegrime,
 /area/hospital/samostrel)
+"qvZ" = (
+/obj/pedestal,
+/obj/item/gun/kinetic/beepsky/one_bullet{
+	pixel_y = 7
+	},
+/turf/unsimulated/floor/shuttle{
+	dir = 8;
+	icon_state = "floor6"
+	},
+/area/centcom/offices/pali)
 "qwk" = (
 /obj/machinery/door/airlock/maintenance{
 	name = "Compartment Access";
@@ -85563,6 +85665,12 @@
 	icon_state = "rootfloor_2"
 	},
 /area/centcom/offices/marknstein)
+"rqw" = (
+/turf/unsimulated/floor/shuttle{
+	dir = 8;
+	icon_state = "floor6"
+	},
+/area/centcom/offices/pali)
 "rst" = (
 /obj/indestructible/shuttle_corner{
 	dir = 1;
@@ -85671,6 +85779,15 @@
 /obj/decal/cleanable/paper,
 /turf/unsimulated/floor/wood/two,
 /area/centcom/offices/tarmunora)
+"rJI" = (
+/obj/critter/roach{
+	name = "unsquashed bug"
+	},
+/turf/unsimulated/floor/shuttle{
+	dir = 8;
+	icon_state = "floor6"
+	},
+/area/centcom/offices/pali)
 "rJR" = (
 /turf/space,
 /turf/unsimulated/floor/blackwhite/whitegrime,
@@ -85726,6 +85843,15 @@
 /obj/fitness/stacklifter,
 /turf/unsimulated/floor/wood/two,
 /area/centcom/offices/hukhukhuk)
+"rUf" = (
+/obj/critter/roach{
+	name = "\"feature\""
+	},
+/turf/unsimulated/floor/shuttle{
+	dir = 8;
+	icon_state = "floor6"
+	},
+/area/centcom/offices/pali)
 "rVv" = (
 /obj/machinery/cruiser_destroyable/cruiser_pod/movement,
 /turf/space,
@@ -86534,11 +86660,8 @@
 	layer = 9.1;
 	pixel_x = 10
 	},
-/obj/cairngorm_stats{
-	pixel_y = 32
-	},
 /turf/unsimulated/floor/red,
-/area/syndicate_station/battlecruiser)
+/area/space)
 "wpG" = (
 /obj/item/storage/wall/fire{
 	pixel_y = 32
@@ -86769,6 +86892,10 @@
 "xoF" = (
 /obj/machinery/light{
 	dir = 1
+	},
+/obj/ladder{
+	id = "ballpit_sov_lab2";
+	layer = 2
 	},
 /obj/table/wood/auto/desk,
 /obj/item/paper{
@@ -117251,7 +117378,7 @@ btf
 btf
 btf
 dgK
-fxL
+btf
 dff
 aKf
 dhv
@@ -117558,7 +117685,7 @@ dhg
 aKf
 dhw
 bqW
-bqW
+ogV
 bqW
 dip
 aKf
@@ -160528,7 +160655,7 @@ dDP
 dDp
 dDP
 dvN
-dvV
+kjV
 ncn
 dDP
 dvN
@@ -160830,9 +160957,9 @@ dRO
 dCF
 eTm
 dvw
-dvW
-dvW
-dwZ
+pkO
+rJI
+iOu
 dvw
 wvy
 hnB
@@ -161132,9 +161259,9 @@ dCE
 dDq
 dCF
 dvw
-dvW
-dvW
-dvW
+rqw
+rUf
+rqw
 dvw
 fhy
 lNZ
@@ -161434,9 +161561,9 @@ dCC
 dCF
 dDN
 dvw
-dvX
-dvW
-dvW
+pCx
+qvZ
+hag
 dvw
 xoF
 tXu
@@ -161736,9 +161863,9 @@ dCD
 dDE
 dRQ
 dvw
-dvW
-dvW
-dvW
+eAl
+rqw
+hnz
 dvw
 dXN
 uTj
@@ -164463,7 +164590,7 @@ gPB
 dDP
 dvN
 dvV
-ncn
+hVQ
 dDP
 dvN
 lEG
