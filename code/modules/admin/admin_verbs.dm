@@ -19,6 +19,7 @@ var/list/admin_verbs = list(
 		/client/proc/cmd_admin_view_playernotes,
 		/client/proc/toggle_pray,
 		/client/proc/cmd_whois,
+		/client/proc/cmd_whodead,
 
 		/client/proc/cmd_admin_pm,
 		/client/proc/dsay,
@@ -662,18 +663,11 @@ var/list/special_pa_observing_verbs = list(
 		src.holder.s_respawn()
 	return
 
-/client/proc/jobbans()
+/client/proc/jobbans(key as text)
 	set name = "Jobban Panel"
 	SET_ADMIN_CAT(ADMIN_CAT_PLAYERS)
 	if(src.holder)
-		src.holder.Jobbans()
-	return
-
-/client/proc/rebuild_jobbans_panel()
-	set name = "Rebuild Jobbans Panel"
-	SET_ADMIN_CAT(ADMIN_CAT_PLAYERS)
-	if (src.holder)
-		src.holder.buildjobbanspanel()
+		src.holder.Topic(null, list("action"="jobbanpanel","target"=key))
 	return
 
 /client/proc/game_panel()

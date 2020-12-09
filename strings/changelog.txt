@@ -1,4 +1,40 @@
 
+(t)wed dec 09 20
+(u)ThePotato97
+(p)3008
+(e)🐛📄|bug, tgui
+(+)Fixed paper; stamp scrolling, shift time and clipboard interaction.
+(t)tue dec 08 20
+(u)ThePotato97
+(p)2775
+(e)🐛🆕🔄🎨📄|bug, feature, rework, sprites, tgui
+(*)Converted paper to tgui - This also means it now uses Markdown formatting!
+(+)Fixed note on canister bombs
+(u)Nefarious6th
+(p)2918
+(e)🗺|mapping
+(+)Adds Spacemas variants of Atlas, Clarion, Horizon, Manta, and Oshan maps
+(u)virvatuli
+(p)2993
+(e)🗺|mapping
+(+)Removed taser shotgun from HoS locker on Manta
+(t)mon dec 07 20
+(u)Camryn Buttes
+(p)2972
+(e)⚖⛔|balance, removal
+(*)Removed the obesity mutation
+(t)sun dec 06 20
+(u)Flourish
+(e)🆕|feature
+(*)You can now send letters to Santa! Find their helper under the Spacemas tree.
+(u)BatElite
+(p)2932
+(e)🆕|feature
+(+)Crewmembers looking for early retirement can now use portable air pumps for that purpose.
+(u)Kubius
+(p)2900
+(e)🆕🗺|feature, mapping
+(+)Further small Ozymandias fixes/changes, primarily QM flow improvements and pod bay controls.
 (t)sat dec 05 20
 (u)pali
 (p)2955
