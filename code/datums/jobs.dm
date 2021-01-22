@@ -239,7 +239,7 @@
 	receives_disk = 1
 	receives_security_disk = 1
 	receives_badge = 1
-	recieves_implant = /obj/item/implant/health/security
+	recieves_implant = /obj/item/implant/health/security/anti_mindslave
 
 
 #ifdef SUBMARINE_MAP
@@ -820,8 +820,6 @@
 		..()
 		if (!M)
 			return
-		if (prob(20))
-			M.bioHolder.AddEffect("accent_swedish", do_stability=0)
 
 /datum/job/civilian/bartender
 	name = "Bartender"
@@ -860,6 +858,7 @@
 	slot_jump = /obj/item/clothing/under/rank/hydroponics
 	slot_foot = /obj/item/clothing/shoes/brown
 	slot_glov = /obj/item/clothing/gloves/black
+	slot_poc1 = /obj/item/paper/botany_guide
 	slot_ears = /obj/item/device/radio/headset/civilian
 
 	New()
@@ -1332,6 +1331,8 @@
 			return
 		M.bioHolder.AddEffect("mute", magical=1)
 		M.bioHolder.AddEffect("blankman", magical=1)
+		if(prob(20))
+			M.bioHolder.AddEffect("noir", magical=1)
 
 // randomizd gimmick jobs
 
@@ -1471,7 +1472,7 @@
 	slot_jump = /obj/item/clothing/under/suit/pinstripe
 	slot_head = /obj/item/clothing/head/flatcap
 	slot_foot = /obj/item/clothing/shoes/brown
-	items_in_backpack = list(/obj/item/instrument/saxophone,/obj/item/instrument/harmonica,/obj/item/instrument/bagpipe,/obj/item/instrument/fiddle)
+	items_in_backpack = list(/obj/item/instrument/saxophone,/obj/item/instrument/guitar,/obj/item/instrument/bagpipe,/obj/item/instrument/fiddle)
 
 /datum/job/special/random/union
 	name = "Union Rep"
@@ -1673,8 +1674,8 @@
 		src.access = get_access("Radio Show Host")
 		return
 
-/datum/job/special/random/psychologist
-	name = "Psychologist"
+/datum/job/special/random/psychiatrist
+	name = "Psychiatrist"
 	wages = PAY_DOCTORATE
 	slot_eyes = /obj/item/clothing/glasses/regular
 	slot_card = /obj/item/card/id/research
@@ -1684,12 +1685,13 @@
 	slot_suit = /obj/item/clothing/suit/labcoat
 	slot_ears = /obj/item/device/radio/headset/medical
 	slot_poc1 = /obj/item/reagent_containers/food/drinks/tea
-	items_in_backpack = list(/obj/item/clipboard/with_pen, /obj/item/paper_bin, /obj/item/stamp, /obj/item/item_box/gold_star, /obj/item/storage/box/cookie_tin/sugar)
-	alt_names = list("Psychologist", "Psychiatrist", "Psychotherapist", "Therapist") // All with slightly different connotations
+	slot_poc2 = /obj/item/reagent_containers/food/drinks/bottle/gin
+	items_in_backpack = list(/obj/item/luggable_computer/personal, /obj/item/clipboard/with_pen, /obj/item/paper_bin, /obj/item/stamp)
+	alt_names = list("Psychiatrist", "Psychologist", "Psychotherapist", "Therapist", "Counselor", "Life Coach") // All with slightly different connotations
 
 	New()
 		..()
-		src.access = get_access("Psychologist")
+		src.access = get_access("Psychiatrist")
 		return
 
 #ifdef HALLOWEEN
