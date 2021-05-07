@@ -167,8 +167,10 @@
 		return make_critter(CT, get_turf(src))
 	return 0
 
-/mob/proc/make_critter(var/CT, var/turf/T)
+/mob/proc/make_critter(var/CT, var/turf/T, ghost_spawned=FALSE)
 	var/mob/living/critter/W = new CT()
+	if(ghost_spawned)
+		W.ghost_spawned = ghost_spawned
 	if (!(T && isturf(T)))
 		T = get_turf(src)
 	/*if (!(T && isturf(T)) || (isrestrictedz(T.z) && !(src.client && src.client.holder)))
@@ -243,7 +245,7 @@
 	else
 		if(src.mind)
 			src.mind.transfer_to(O)
-	O.set_loc(src.loc)
+	O.set_loc(get_turf(src.loc))
 	boutput(O, "<B>You are playing as a Cyborg. Cyborgs can interact with most electronic objects in its view point.</B>")
 	boutput(O, "<B>You must follow all laws that the AI has.</B>")
 	boutput(O, "Use \"say :s (message)\" to speak to fellow cyborgs and the AI through binary.")
@@ -403,7 +405,7 @@
 		else
 			message_admins("[key_name(usr)] made [key_name(src)] a macho man.")
 			logTheThing("admin", usr, src, "made [constructTarget(src,"admin")] a macho man.")
-		var/mob/living/carbon/human/machoman/W = new/mob/living/carbon/human/machoman(src)
+		var/mob/living/carbon/human/machoman/W = new/mob/living/carbon/human/machoman(src, shitty)
 
 		var/turf/T = get_turf(src)
 		if (!(T && isturf(T)) || (isrestrictedz(T.z) && !(src.client && src.client.holder)))
@@ -457,11 +459,11 @@
 					/mob/living/carbon/human/machoman/verb/macho_superthrow,\
 					/mob/living/carbon/human/machoman/verb/macho_soulsteal,\
 					/mob/living/carbon/human/machoman/verb/macho_stare,\
-					/mob/living/carbon/human/machoman/verb/macho_heartpunch\
-					) //they can keep macho heal
+					/mob/living/carbon/human/machoman/verb/macho_heartpunch,\
+					/mob/living/carbon/human/machoman/verb/macho_slimjim_snap) //they can keep macho heal and the arena thing
 				W.verbs -= dangerousVerbs //this is just diabolical
 				W.reagents.add_reagent("anti_fart", 800) //as is this
-			boutput(W, "<span class='notice'>You weren't able to absorb all the macho waves you were bombarded with! You have been left an incomplete macho man, with a frail body, and only one macho power. However, you inflict double damage with most melee weapons. Use your newfound form wisely to prove your worth as a macho champion of justice. Do not kill innocent crewmembers.</span>")
+				boutput(W, "<span class='notice'>You weren't able to absorb all the macho waves you were bombarded with! You have been left an incomplete macho man, with a frail body, and only one macho power. However, you inflict double damage with most melee weapons. Use your newfound form wisely to prove your worth as a macho champion of justice. Do not kill innocent crewmembers.</span>")
 
 		else
 			boutput(W, "<span class='notice'>You are now a macho man!</span>")
@@ -647,22 +649,21 @@ var/list/antag_respawn_critter_types =  list(/mob/living/critter/small_animal/fl
 	var/traitor = 0
 
 	if (length(types))
-		C = selfmob.make_critter(pick(types), spawnpoint)
+		C = selfmob.make_critter(pick(types), spawnpoint, ghost_spawned=TRUE)
 	else
 		traitor = checktraitor(selfmob)
 		if (traitor)
-			C = selfmob.make_critter(pick(antag_respawn_critter_types), spawnpoint)
+			C = selfmob.make_critter(pick(antag_respawn_critter_types), spawnpoint, ghost_spawned=TRUE)
 		else
 			if (selfmob.mind && istype(selfmob.mind.purchased_bank_item, /datum/bank_purchaseable/critter_respawn))
 				var/datum/bank_purchaseable/critter_respawn/critter_respawn = selfmob.mind.purchased_bank_item
-				C = selfmob.make_critter(pick(critter_respawn.respawn_critter_types), spawnpoint)
+				C = selfmob.make_critter(pick(critter_respawn.respawn_critter_types), spawnpoint, ghost_spawned=TRUE)
 			else
-				C = selfmob.make_critter(pick(respawn_critter_types), spawnpoint)
+				C = selfmob.make_critter(pick(respawn_critter_types), spawnpoint, ghost_spawned=TRUE)
 
 	C.mind.assigned_role = "Animal"
 	C.say_language = "animal"
 	C.literate = 0
-	C.ghost_spawned = 1
 	C.original_name = selfmob.real_name
 
 	if (traitor)
@@ -737,15 +738,15 @@ var/list/antag_respawn_critter_types =  list(/mob/living/critter/small_animal/fl
 
 		var/mob/selfmob = src
 		src = null
-		var/mob/living/critter/C = selfmob.make_critter(/mob/living/critter/small_animal/mouse/weak/mentor, spawnpoint)
+		var/mob/living/critter/C = selfmob.make_critter(/mob/living/critter/small_animal/mouse/weak/mentor, spawnpoint, ghost_spawned=TRUE)
 
 		C.mind.assigned_role = "Animal"
 		C.say_language = "animal"
 		C.literate = 0
-		C.ghost_spawned = 1
 		C.original_name = selfmob.real_name
 
 		C.Browse(grabResource("html/ghostcritter_mentor.html"),"window=ghostcritter_mentor;size=600x400;title=Ghost Critter Help")
+		logTheThing("admin", C, null, "respawned as a mentor mouse at [log_loc(C)].")
 
 		//hacky fix : qdel brain to prevent reviving
 		if (C.organHolder)
@@ -779,11 +780,10 @@ var/list/antag_respawn_critter_types =  list(/mob/living/critter/small_animal/fl
 
 	var/mob/selfmob = src
 	src = null
-	var/mob/living/critter/C = selfmob.make_critter(/mob/living/critter/small_animal/mouse/weak/mentor/admin, spawnpoint)
+	var/mob/living/critter/C = selfmob.make_critter(/mob/living/critter/small_animal/mouse/weak/mentor/admin, spawnpoint, ghost_spawned=TRUE)
 	C.mind.assigned_role = "Animal"
 	// C.say_language = "animal"
 	C.literate = 1
-	C.ghost_spawned = 1
 	C.original_name = selfmob.real_name
 
 	//hacky fix : qdel brain to prevent reviving

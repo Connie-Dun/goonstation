@@ -15,7 +15,7 @@
 	var/toggle = 1
 	var/force_dud = 0
 
-	w_class = 6 /// HEH
+	w_class = W_CLASS_GIGANTIC /// HEH
 	p_class = 3 /// H E H
 	mats = 5
 
@@ -25,6 +25,12 @@
 		if (user.mind && user.mind.gang)
 			boutput(user, "<span class='alert'>You think working with explosives would bring a lot of much heat onto your gang to mess with this. But you do it anyway.</span>")
 		if(istype(item, /obj/item/tank) || istype(item, /obj/item/clothing/head/butt))
+			if(istype(item, /obj/item/tank))
+				var/obj/item/tank/myTank = item
+				if(!myTank.compatible_with_TTV)
+					boutput(user, "<span class='alert'>There's no way that will fit!</span>")
+					return
+
 			if(tank_one && tank_two)
 				boutput(user, "<span class='alert'>There are already two tanks attached, remove one first!</span>")
 				return

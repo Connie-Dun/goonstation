@@ -18,6 +18,7 @@ Contains:
 	var/datum/gas_mixture/air_contents = null
 	var/distribute_pressure = ONE_ATMOSPHERE
 	var/integrity = 3
+	var/compatible_with_TTV = 1
 	flags = FPRINT | TABLEPASS | CONDUCT | ONBACK | TGUI_INTERACTIVE
 
 	pressure_resistance = ONE_ATMOSPHERE*5
@@ -36,6 +37,7 @@ Contains:
 		src.air_contents.volume = 70 //liters
 		src.air_contents.temperature = T20C
 		processing_items |= src
+		src.create_inventory_counter()
 		BLOCK_SETUP(BLOCK_TANK)
 		return
 
@@ -128,6 +130,7 @@ Contains:
 		if (air_contents) //Wire: Fix for Cannot execute null.react().
 			air_contents.react()
 		check_status()
+		src.inventory_counter.update_text("[round(MIXTURE_PRESSURE(air_contents))]\nkPa")
 
 	proc/check_status()
 		//Handle exploding, leaking, and rupturing of the tank
@@ -194,7 +197,7 @@ Contains:
 			var/obj/item/icon = src
 			. = list()
 			icon = src.loc
-			if (!in_range(src, usr))
+			if (!in_interact_range(src, usr))
 				if (icon == src)
 					. += "<span class='notice'>It's a [bicon(icon)]! If you want any more information you'll need to get closer.</span>"
 				return
@@ -293,7 +296,7 @@ Contains:
 	icon_state = "jetpack_mag0"
 	uses_multiple_icon_states = 1
 	var/on = 0.0
-	w_class = 4.0
+	w_class = W_CLASS_BULKY
 	item_state = "jetpack_mag"
 	mats = 16
 	force = 8
@@ -351,13 +354,14 @@ Contains:
 	icon_state = "jetpack0"
 	uses_multiple_icon_states = 1
 	var/on = 0.0
-	w_class = 4.0
+	w_class = W_CLASS_BULKY
 	item_state = "jetpack"
 	mats = 16
 	force = 8
 	desc = "A jetpack that can be toggled on, letting the user use the gas inside as a propellant. Can also be hooked up to a compatible mask to allow you to breathe the gas inside. This is labelled to contain oxygen."
 	module_research = list("atmospherics" = 4)
 	distribute_pressure = 17 // setting these things to start at the minimum pressure needed to breathe - Haine
+	compatible_with_TTV = 0
 
 	New()
 		..()
@@ -420,7 +424,7 @@ Contains:
 	name = "emergency oxygentank"
 	icon_state = "em_oxtank"
 	flags = FPRINT | TABLEPASS | ONBELT | CONDUCT
-	w_class = 2.0
+	w_class = W_CLASS_SMALL
 	force = 3.0
 	stamina_damage = 30
 	stamina_cost = 16
@@ -460,6 +464,7 @@ Contains:
 /obj/item/tank/plasma
 	name = "Gas Tank (BIOHAZARD)"
 	icon_state = "plasma"
+	item_state = "plasma"
 	desc = "This is a tank that can be hooked up to a compatible recepticle. When a mask is worn and the release valve on the tank is open, the user will breathe the gas inside the tank. This is labelled to contain deadly plasma."
 	module_research = list("atmospherics" = 2)
 
@@ -598,7 +603,7 @@ Contains:
 	name = "Super Soaker"
 	icon_state = "jetpack0"
 	var/on = 0.0
-	w_class = 4.0
+	w_class = W_CLASS_BULKY
 	item_state = "jetpack"*/
 
 
@@ -607,7 +612,7 @@ Contains:
 	icon_state = "jetpack_mk2_0"
 	uses_multiple_icon_states = 1
 	on = 0.0
-	w_class = 4.0
+	w_class = W_CLASS_BULKY
 	item_state = "jetpack_mk2_0"
 	mats = 16
 	force = 8

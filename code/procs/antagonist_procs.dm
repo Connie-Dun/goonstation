@@ -173,13 +173,13 @@
 		return
 
 	if (!traitor_mob.r_store)
-		traitor_mob.equip_if_possible(new /obj/item/device/flash(traitor_mob), traitor_mob.slot_r_store)
+		traitor_mob.equip_if_possible(new /obj/item/camera/spy(traitor_mob), traitor_mob.slot_r_store)
 	else if (!traitor_mob.l_store)
-		traitor_mob.equip_if_possible(new /obj/item/device/flash(traitor_mob), traitor_mob.slot_l_store)
+		traitor_mob.equip_if_possible(new /obj/item/camera/spy(traitor_mob), traitor_mob.slot_l_store)
 	else if (istype(traitor_mob.back, /obj/item/storage/) && traitor_mob.back.contents.len < 7)
-		traitor_mob.equip_if_possible(new /obj/item/device/flash(traitor_mob), traitor_mob.slot_in_backpack)
+		traitor_mob.equip_if_possible(new /obj/item/camera/spy(traitor_mob), traitor_mob.slot_in_backpack)
 	else
-		var/obj/F2 = new /obj/item/device/flash(get_turf(traitor_mob))
+		var/obj/F2 = new /obj/item/camera/spy(get_turf(traitor_mob))
 		traitor_mob.put_in_hand_or_drop(F2)
 
 	var/pda_pass = null
@@ -196,6 +196,9 @@
 	if (!R && istype(traitor_mob.l_store, /obj/item/device/pda2))
 		R = traitor_mob.l_store
 		loc = "In your pocket"
+	if (!R && istype(traitor_mob.wear_id, /obj/item/device/pda2))
+		R = traitor_mob.wear_id
+		loc = "In your ID slot"
 	if (!R && istype(traitor_mob.l_hand, /obj/item/storage))
 		var/obj/item/storage/S = traitor_mob.l_hand
 		var/list/L = S.get_contents()
@@ -298,7 +301,7 @@
 /// returns a decimal representing the percentage of alive crew that are also antags
 /proc/get_alive_antags_percentage()
 	var/alive = 0
-	var/alive_antags = ticker.mode.traitors.len + ticker.mode.Agimmicks.len
+	var/alive_antags = ticker.mode.traitors.len + length(ticker.mode.Agimmicks)
 
 	for (var/datum/mind/antag in ticker.mode.traitors)
 		var/mob/M = antag.current

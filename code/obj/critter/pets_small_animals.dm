@@ -164,6 +164,7 @@
 	brutevuln = 1
 	butcherable = 1
 	pet_text = list("gently baps", "pets", "cuddles")
+	feed_text = "chatters happily!"
 
 	skinresult = /obj/item/material_piece/cloth/leather
 	max_skins = 1
@@ -226,6 +227,7 @@
 	brutevuln = 1
 	angertext = "hisses at"
 	chase_text = "pounces on"
+	feed_text = "purrs contentedly."
 	butcherable = 2
 	var/cattype = 1
 	var/randomize_cat = 1
@@ -400,17 +402,6 @@
 	attackby(obj/item/W as obj, mob/living/user as mob)
 		if (istype(W, /obj/item/card/emag))
 			emag_act(usr, W)
-		if (istype(W, /obj/item/card/id/blank_deluxe))
-			var/obj/item/card/id/blank_deluxe/CARD = W
-			if (CARD.desc == "Some type of microchipped payment card. Looks like it's designed to deal with catcoins.")//Can't change descs
-				if (!swiped && !CARD.jones_swiped)
-					if (user)
-						user.show_text("You swipe down [src]'s back in a petting motion...")
-					src.visible_message("<span class='combat'>[src] vomits out a wad of paper!</span>") //Jones City Puzzle
-					make_cleanable( /obj/decal/cleanable/vomit,src.loc)
-					new /obj/item/paper/jones_note(src.loc)
-					swiped++
-					CARD.jones_swiped = 1 //Can only use the card once.
 		else
 			..()
 
@@ -967,7 +958,7 @@ var/list/shiba_names = list("Maru", "Coco", "Foxtrot", "Nectarine", "Moose", "Pe
 		var/thing_to_say = ""
 		if (islist(src.learned_phrases) && src.learned_phrases.len && prob(20))
 			thing_to_say = pick(src.learned_phrases)
-		else if (islist(src.learned_words) && src.learned_words.len)
+		else if (islist(src.learned_words) && length(src.learned_words))
 			thing_to_say = pick(src.learned_words) // :monocle:
 			thing_to_say = "[capitalize(thing_to_say)][pick(".", "!", "?", "...")]"
 		// format

@@ -239,6 +239,11 @@
 	<br>The \"set rgb\" Input takes a Color in the HTML Color Code Format, for Example: #FF1200 .
 	<br>
 	<br>
+	<br><B>Letter Display Component:</B>
+	<br>Displays a single letter from the input signal.
+	<br>Set the letter index to choose which letter is displayed.  For example, if the letter index is 2, and an input signal of "Hello" arrives, "E" will be displayed.
+	<br>
+	<br>
 	<br><B>Microphone Component:</B>
 	<br>Forwards nearby speech as signal.
 	<br>The "Toggle Show-Source" option determines whether the component adds the source's name to the signal or not.
@@ -311,11 +316,6 @@
 	<br><B>Wifi Signal Splitter Component:</B>
 	<br>Returns the value of a field within a Radio signal. The components Trigger Field is the Field you want the Value of.
 	<br>For example: Set the Trigger Field to \"user_id\". When a Signal with \"user_id=captain\" arrives the Component forwards \"captain\"
-	<br>
-	<br>
-	<br><B>Letter Display Component:</B>
-	<br>Displays a single letter from the input signal.
-	<br>Set the letter index to choose which letter is displayed.  For example, if the letter index is 2, and an input signal of "Hello" arrives, "E" will be displayed.
 	<br>
 	<br>
 	"}
@@ -1120,7 +1120,7 @@ This ruleset is entirely based upon the Quick Quest system, with minor changes. 
 	examine(mob/user)
 		if (!issilicon(user))
 			. = list("What...what is this? It's written entirely in barcodes or something, cripes. You can't make out ANY of this.")
-			var/mob/living/carbon/jerk = usr
+			var/mob/living/carbon/jerk = user
 			if (!istype(jerk))
 				return
 
@@ -2812,6 +2812,11 @@ I'm being taken somewhere. I can feel it. Piece by piece, particle by particle, 
 	For certain crimes, the accused's intent is important. The difference between Assault and Attempted Murder can be very hard to ascertain, and, when in doubt, you should default to the less serious crime. It is important to note though, that Assault and Attempted Murder are mutually exclusive. You cannot be charged with Assault and Attempted Murder from the same crime as the intent of each is different. Likewise, 'Assault With a Deadly Weapon' and 'Assaulting an Officer' are also crimes that exclude others. Pay careful attention to the requirements of each law and select the one that best fits the crime when deciding sentence.<br><br>
 	Security roles and their superiors can read the Miranda warning to suspects by using the Recite Miranda Rights verb or *miranda emote. The wording is also customizable via Set Miranda Rights.<br><br>
 	Additionally: It is <b><i>highly illegal</i></b> for Nanotrasen personnel to make use of Syndicate devices. Do not use traitor gear as a non-traitor, even to apprehend traitors.<hr>
+
+As a Security Assistant, generally the same principles apply to you, but with half of the responsibility. Your primary role is to assist the Security team in the best way you can, whether that be in sorting out Security records, wardening any prisoners being held in the brig or manning the security cameras. Despite what your fellow officers might tell you, supplying the Security team with alcohol is NOT within your role expectation and should NOT be done while on duty.<br><br>
+In the case of conflict arising, either between two crew members, the crew and Security or antagonistic forces against the station, you are advised to tactically retreat and reconvene with your team in order to tackle the issue together. Do not attempt to handle these yourself. The equipment you are given is to serve you purely in the case of supporting the team and if worse comes to worst, in the case of self-defence. As such, leave the responsibility of performing arrests and takedowns to the Security officers. Better to catch a criminal another day than to lose a team mate.<br><br>
+On that note, CentComm would like to remind trainees that they do not recieve cloning data disks or health implants and as such, your health and safety is entirely your responsibility. Thank you for your understanding.<br><br>
+
 	Here's a guideline for how you should probably treat suspects by each particular crime.
 	<h4>Minor Crimes:</h4>
 	<i>No suspect may be sentenced for more than five minutes in the Brig for Minor Crimes. Minor Crime sentences are not cumulative (e.g: max five minutes for committing multiple Minor Crimes).</i>
@@ -2961,7 +2966,7 @@ I'm being taken somewhere. I can feel it. Piece by piece, particle by particle, 
 		else
 			if(ishuman(hit_atom))
 				var/mob/living/carbon/human/user = usr
-				var/hos = (istype(user.head, /obj/item/clothing/head/hosberet) || istype(user.head, /obj/item/clothing/head/helmet/HoS))
+				var/hos = (istype(user.head, /obj/item/clothing/head/hosberet) || istype(user.head, /obj/item/clothing/head/hos_hat))
 				if(hos)
 					var/mob/living/carbon/human/H = hit_atom
 					H.changeStatus("stunned", 2 SECONDS)
@@ -3545,6 +3550,64 @@ soon the light of the unwaking will rise and the shining ones will not be prepar
 		if (voidMessage)
 			boutput(wearer, "[voidMessage]")
 		return
+
+/obj/item/paper/book/from_file
+	var/file_path = null
+
+	New()
+		..()
+		if(isnull(src.file_path))
+			CRASH("from_file book has no file path")
+		src.info = file2text(src.file_path)
+
+/obj/item/paper/from_file
+	var/file_path = null
+
+	New()
+		..()
+		if(isnull(src.file_path))
+			CRASH("from_file paper has no file path")
+		src.info = file2text(src.file_path)
+
+/obj/item/paper/book/from_file/ai_programming_101
+	name = "AI Programming 101"
+	icon_state = "cyanbook"
+	file_path = "strings/books/ai_programming_101.txt"
+
+/obj/item/paper/book/from_file/captaining_101
+	name = "Captaining 101"
+	icon_state = "greenbook"
+	file_path = "strings/books/captaining_101.txt"
+
+/obj/item/paper/book/from_file/commanders_diary
+	name = "Commander's Diary"
+	icon_state = "redbook"
+	file_path = "strings/books/commanders_diary.txt"
+
+/obj/item/paper/book/from_file/dealing_with_clonelieness
+	name = "Dealing With Clonelieness"
+	icon_state = "cyanbook"
+	file_path = "strings/books/dealing_with_clonelieness.txt"
+
+/obj/item/paper/book/from_file/elective_prosthetics_for_dummies
+	name = "Elective Prosthetics for Dummies"
+	icon_state = "whitebook"
+	file_path = "strings/books/elective_prosthetics_for_dummies.txt"
+
+/obj/item/paper/book/from_file/fun_facts_about_shelterfrogs
+	name = "Fun Facts About Shelterfrogs"
+	icon_state = "greenbook"
+	file_path = "strings/books/fun_facts_about_shelterfrogs.txt"
+
+/obj/item/paper/book/from_file/syndies_guide
+	name = "A SYNDIE'S GUIDE TO DOING YOUR FUCKING JOB"
+	icon_state = "redbook"
+	file_path = "strings/books/syndies_guide.txt"
+
+/obj/item/paper/book/from_file/teg_guide
+	name = "Thermo-electric Power Generation"
+	icon_state = "yelbook"
+	file_path = "strings/books/teg_guide.txt"
 
 /obj/item/paper/book/custom //custom book parent, just to avoid cluttering up normal books
 	var/custom_cover = 0 //if 1, goes thru with the build custom icon process

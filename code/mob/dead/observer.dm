@@ -86,21 +86,13 @@
 
 
 	src.visible_message("<span class='game deadsay'><span class='prefix'>DEAD:</span><b>[src]</b> points to [target].</span>")
-	var/obj/decal/point/P = new(get_turf(target))
-	P.pixel_x = target.pixel_x
-	P.pixel_y = target.pixel_y
-	P.color = "#5c00e6"
-
+	var/point_invisibility = src.invisibility
 #ifdef HALLOWEEN
-	//ghost points have a 20% chance to be seen by the living.
-	P.invisibility = prob(80) ? src.invisibility : 0
-#else
-	P.invisibility = src.invisibility
+	if(prob(20))
+		point_invisibility = 0
 #endif
-	src = null // required to make sure its deleted
-	SPAWN_DBG(2 SECONDS)
-		P.invisibility = 101
-		qdel(P)
+	make_point(get_turf(target), pixel_x=target.pixel_x, pixel_y=target.pixel_y, color="#5c00e6", invisibility=point_invisibility)
+
 
 #define GHOST_LUM	1		// ghost luminosity
 
@@ -311,6 +303,11 @@
 		src.ghost = O
 		if(istype(get_area(src),/area/afterlife))
 			qdel(src)
+
+		var/datum/respawnee/respawnee = global.respawn_controller.respawnees[O.ckey]
+		if(istype(respawnee))
+			respawnee.update_time_display()
+
 		O.update_item_abilities()
 		return O
 	return null
@@ -798,6 +795,7 @@
 
 mob/dead/observer/proc/insert_observer(var/atom/target)
 	var/mob/dead/target_observer/newobs = unpool(/mob/dead/target_observer)
+	newobs.attach_hud(hud)
 	newobs.set_observe_target(target)
 	newobs.name = src.name
 	newobs.real_name = src.real_name

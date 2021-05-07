@@ -29,12 +29,6 @@
 		else
 			on_inactive()
 
-		//src.overlays = null
-		//if (src.active) src.overlays += image('icons/obj/power.dmi', "furn-burn")
-		//if (fuelperc >= 20) src.overlays += image('icons/obj/power.dmi', "furn-c1")
-		//if (fuelperc >= 40) src.overlays += image('icons/obj/power.dmi', "furn-c2")
-		//if (fuelperc >= 60) src.overlays += image('icons/obj/power.dmi', "furn-c3")
-		//if (fuelperc >= 80) src.overlays += image('icons/obj/power.dmi', "furn-c4")
 		update_icon()
 
 	proc/on_burn()
@@ -97,6 +91,7 @@
 					M.death(1)
 					if (M.mind)
 						M.ghostize()
+					src.stoked += round(M.reagents?.get_reagent_amount("THC") / 5)
 					qdel(M)
 					qdel(W)
 					src.fuel += 400
@@ -162,7 +157,7 @@
 			user.visible_message("<span class='notice'>[user] begins quickly stuffing weed into [src]!</span>") // four fuckin twenty all day
 			var/staystill = user.loc
 			for(var/obj/item/plant/herb/cannabis/M in view(1,user))
-				load_fuel_and_pool(M, 30, 10)
+				load_fuel_and_pool(M, 30, 5)
 				if (src.fuel >= src.maxfuel)
 					src.fuel = src.maxfuel
 					boutput(user, "<span class='notice'>The furnace is now full!</span>")
@@ -198,6 +193,7 @@
 			user.visible_message("<span class='notice'>[user] [pick("crams", "shoves", "pushes", "forces")] [O] into [src]!</span>")
 			src.fuel += initial(C.health) * 8
 			src.stoked += max(C.quality / 2, 0)
+			src.stoked += round(C.reagents?.get_reagent_amount("THC") / 5)
 			qdel(O)
 		else ..()
 		src.updateUsrDialog()
@@ -206,6 +202,7 @@
 	// Returns number of items loaded
 	proc/load_fuel_and_pool(obj/item/F, fuel_value, stoked_value=0)
 		var/amtload = 0
+		stoked_value += round(F.reagents?.get_reagent_amount("THC") / 5)
 		if (istype(F))
 			amtload = min( ceil( (src.maxfuel - src.fuel) / fuel_value ), F.amount )
 			src.fuel += fuel_value * amtload
@@ -276,14 +273,15 @@
 					M.death(1)
 					if (M.mind)
 						M.ghostize()
-					qdel(M)
 					fuel += 400
 					stoked += 50
+					stoked += round(M.reagents?.get_reagent_amount("THC") / 5)
+					qdel(M)
 				else if(isitem(fried_content))
 					var/obj/item/O = fried_content
 					load_into_furnace(O, 0)
 		else if (istype(W, /obj/item/plant/herb/cannabis))
-			load_fuel_and_pool(W, 30, 10)
+			load_fuel_and_pool(W, 30, 5)
 			pooled_type = TRUE
 		else
 			return 0

@@ -366,6 +366,7 @@ var/zapLimiter = 0
 					icon_state = initial(src.icon_state)
 					operating = 1
 					update()
+					updateicon()
 					return
 			return
 
@@ -532,7 +533,7 @@ var/zapLimiter = 0
 
 	interact_particle(user,src)
 
-	if(opened && (!issilicon(user) || isghostdrone(user) || !isAI(user)))
+	if(opened && !isAI(user))
 		if(cell)
 			user.put_in_hand_or_drop(cell)
 			cell.updateicon()
@@ -551,7 +552,7 @@ var/zapLimiter = 0
 	if (user.getStatusDuration("stunned") || user.getStatusDuration("weakened") || user.stat)
 		return
 
-	if (!in_range(src, user))
+	if (!in_interact_range(src, user))
 		src.remove_dialog(user)
 		user.Browse(null, "window=apc")
 		return
@@ -588,7 +589,9 @@ var/zapLimiter = 0
 	src.add_dialog(user)
 	var/t = "<TT><B>Area Power Controller</B> ([area.name])<HR>"
 
-	if((locked || (setup_networkapc > 1)) && !can_access_remotely(user))
+	if (!area.requires_power)
+		t += "<I>This APC has no configurable settings.</I>"
+	else if((locked || (setup_networkapc > 1)) && !can_access_remotely(user))
 		if (setup_networkapc < 2)
 			t += "<I>(Swipe ID card to unlock inteface.)</I><BR>"
 		else
@@ -932,7 +935,7 @@ var/zapLimiter = 0
 		return
 	if (usr.getStatusDuration("stunned") || usr.getStatusDuration("weakened") || usr.stat)
 		return
-	if ((in_range(src, usr) && istype(src.loc, /turf))||(issilicon(usr) || isAI(usr)))
+	if ((in_interact_range(src, usr) && istype(src.loc, /turf))||(issilicon(usr) || isAI(usr)))
 		src.add_dialog(usr)
 		if (href_list["apcwires"] && wiresexposed)
 			var/t1 = text2num(href_list["apcwires"])

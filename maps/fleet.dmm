@@ -1065,20 +1065,6 @@
 	},
 /turf/simulated/wall/auto/supernorn,
 /area/station/crew_quarters/tenebrae)
-"cs" = (
-/obj/rack,
-/obj/item/clothing/suit/space/emerg,
-/obj/item/clothing/head/emerg,
-/obj/item/clothing/mask/breath,
-/obj/item/tank/air,
-/obj/item/device/light/flashlight,
-/obj/item/device/audio_log,
-/obj/item/camera_test,
-/obj/item/device/radio/headset/multifreq,
-/turf/simulated/floor/purplewhite{
-	dir = 9
-	},
-/area/station/science/teleporter)
 "ct" = (
 /obj/reagent_dispensers/foamtank,
 /turf/simulated/floor/caution/corner/misc{
@@ -1172,25 +1158,6 @@
 	},
 /turf/simulated/wall/auto/supernorn,
 /area/station/crew_quarters/tenebrae)
-"cF" = (
-/obj/rack,
-/obj/item/clothing/suit/space/emerg,
-/obj/item/clothing/head/emerg,
-/obj/item/clothing/mask/breath,
-/obj/item/tank/air,
-/obj/item/device/light/flashlight,
-/obj/item/device/audio_log,
-/obj/item/camera_test,
-/obj/item/device/radio/headset/multifreq,
-/obj/cable{
-	d2 = 4;
-	icon_state = "0-4"
-	},
-/obj/machinery/power/apc/autoname_west,
-/turf/simulated/floor/purplewhite{
-	dir = 8
-	},
-/area/station/science/teleporter)
 "cG" = (
 /obj/cable{
 	d1 = 2;
@@ -5887,22 +5854,6 @@
 	},
 /turf/simulated/floor/carpet/grime,
 /area/station/security/detectives_office)
-"mo" = (
-/obj/table/wood/auto,
-/obj/item/device/camera_viewer,
-/obj/item/camera_test,
-/obj/item/device/audio_log,
-/obj/item/audio_tape,
-/obj/item/audio_tape,
-/obj/item/device/detective_scanner,
-/obj/item/pen,
-/obj/cable{
-	d2 = 8;
-	icon_state = "0-8"
-	},
-/obj/machinery/power/apc/autoname_east,
-/turf/simulated/floor/carpet/grime,
-/area/station/security/detectives_office)
 "mp" = (
 /obj/table/auto,
 /obj/item/shipcomponent/mainweapon/taser,
@@ -6162,7 +6113,7 @@
 "mN" = (
 /obj/table/reinforced/auto,
 /obj/item/instrument/harmonica,
-/obj/item/card_box/suit,
+/obj/item/card_box/plain,
 /turf/simulated/floor/black/grime,
 /area/station/security/secwing)
 "mO" = (
@@ -9453,8 +9404,8 @@
 "th" = (
 /obj/table/reinforced/auto,
 /obj/item/kitchen/rollingpin,
-/obj/item/reagent_containers/glass/bottle/icing,
-/obj/item/reagent_containers/glass/bottle/icing,
+/obj/item/reagent_containers/food/drinks/drinkingglass/icing,
+/obj/item/reagent_containers/food/drinks/drinkingglass/icing,
 /obj/item/kitchen/utensil/knife,
 /turf/simulated/floor/specialroom/cafeteria,
 /area/station/crew_quarters/cafeteria{
@@ -13835,7 +13786,7 @@
 /area/station/chapel/sanctuary)
 "Bk" = (
 /obj/table/auto,
-/obj/item/card_box/suit,
+/obj/item/card_box/plain,
 /obj/machinery/light_switch/west,
 /turf/simulated/floor/grey,
 /area/station/crew_quarters/captain{
@@ -14614,15 +14565,6 @@
 	opacity = 0
 	},
 /turf/simulated/floor/plating,
-/area/station/bridge/captain{
-	name = "Meridian Command"
-	})
-"CL" = (
-/obj/table/wood/auto,
-/obj/displaycase{
-	pixel_y = 6
-	},
-/turf/simulated/floor/black,
 /area/station/bridge/captain{
 	name = "Meridian Command"
 	})
@@ -17574,7 +17516,7 @@
 	pixel_x = -4;
 	pixel_y = 8
 	},
-/obj/item/postit_stack{
+/obj/item/item_box/postit{
 	pixel_x = 3;
 	pixel_y = 1
 	},
@@ -18183,7 +18125,7 @@
 "JG" = (
 /obj/table/wood/auto,
 /obj/item/reagent_containers/food/drinks/bottle/tequila,
-/obj/item/playing_cards/suit,
+/obj/item/card_group/plain,
 /obj/item/spacecash/hundred,
 /turf/simulated/floor/orangeblack,
 /area/listeningpost)
@@ -24256,6 +24198,16 @@
 /area/station/engine/core{
 	name = "Erebus Plasmitics Zone"
 	})
+"Wl" = (
+/obj/table/wood/auto,
+/obj/displaycase{
+	displayed = new /obj/item/captaingun;
+	pixel_y = 6
+	},
+/turf/simulated/floor/black,
+/area/station/bridge/captain{
+	name = "Meridian Command"
+	})
 "Wn" = (
 /obj/grille/catwalk{
 	dir = 10;
@@ -24626,6 +24578,22 @@
 /area/station/engine/core{
 	name = "Erebus Plasmitics Zone"
 	})
+"Xq" = (
+/obj/table/wood/auto,
+/obj/item/device/camera_viewer,
+/obj/item/camera,
+/obj/item/device/audio_log,
+/obj/item/audio_tape,
+/obj/item/audio_tape,
+/obj/item/device/detective_scanner,
+/obj/item/pen,
+/obj/cable{
+	d2 = 8;
+	icon_state = "0-8"
+	},
+/obj/machinery/power/apc/autoname_east,
+/turf/simulated/floor/carpet/grime,
+/area/station/security/detectives_office)
 "Xr" = (
 /obj/decal/poster/wallsign/stencil/right/one{
 	layer = 2;
@@ -24805,6 +24773,20 @@
 /area/station/engine/core{
 	name = "Erebus Plasmitics Zone"
 	})
+"XN" = (
+/obj/rack,
+/obj/item/clothing/suit/space/emerg,
+/obj/item/clothing/head/emerg,
+/obj/item/clothing/mask/breath,
+/obj/item/tank/air,
+/obj/item/device/light/flashlight,
+/obj/item/device/audio_log,
+/obj/item/camera,
+/obj/item/device/radio/headset/multifreq,
+/turf/simulated/floor/purplewhite{
+	dir = 9
+	},
+/area/station/science/teleporter)
 "XQ" = (
 /obj/cable{
 	icon_state = "4-8"
@@ -25379,6 +25361,25 @@
 /area/station/engine/power{
 	name = "Erebus Power Room"
 	})
+"ZE" = (
+/obj/rack,
+/obj/item/clothing/suit/space/emerg,
+/obj/item/clothing/head/emerg,
+/obj/item/clothing/mask/breath,
+/obj/item/tank/air,
+/obj/item/device/light/flashlight,
+/obj/item/device/audio_log,
+/obj/item/camera,
+/obj/item/device/radio/headset/multifreq,
+/obj/cable{
+	d2 = 4;
+	icon_state = "0-4"
+	},
+/obj/machinery/power/apc/autoname_west,
+/turf/simulated/floor/purplewhite{
+	dir = 8
+	},
+/area/station/science/teleporter)
 "ZH" = (
 /obj/machinery/atmospherics/pipe/simple/insulated/cold{
 	dir = 10
@@ -58877,7 +58878,7 @@ aa
 aa
 kU
 xx
-mo
+Xq
 mV
 ny
 kT
@@ -59547,8 +59548,8 @@ Qo
 bG
 bU
 bU
-cs
-cF
+XN
+ZE
 cS
 dp
 Iq
@@ -61036,7 +61037,7 @@ aa
 aa
 BM
 Cl
-CL
+Wl
 Dm
 DN
 Eg

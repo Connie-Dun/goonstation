@@ -110,6 +110,7 @@ ABSTRACT_TYPE(/area) // don't instantiate this directly dummies, use /area/space
 	var/workplace = 0
 
 	var/list/obj/critter/registered_critters = list()
+	var/list/obj/critter/registered_mob_critters = list()
 	var/waking_critters = 0
 
 	// this chunk zone is for Area Ambience
@@ -141,6 +142,9 @@ ABSTRACT_TYPE(/area) // don't instantiate this directly dummies, use /area/space
 
 	/// Local list of obj/machines found in the area
 	var/list/machines = list()
+
+	///This datum, if set, allows terrain generation behavior to be ran on world/proc/init()
+	var/datum/map_generator/map_generator
 
 	proc/CanEnter(var/atom/movable/A)
 		if( blocked )
@@ -205,6 +209,7 @@ ABSTRACT_TYPE(/area) // don't instantiate this directly dummies, use /area/space
 							src.population |= enteringM.mind
 							if (!src.active)
 								src.active = 1
+								SEND_SIGNAL(src, COMSIG_AREA_ACTIVATED)
 
 						//Dumb fucking medal fuck
 						if (src.name == "Space" && istype(A, /obj/vehicle/segway))
@@ -245,6 +250,7 @@ ABSTRACT_TYPE(/area) // don't instantiate this directly dummies, use /area/space
 								src.population -= exitingM.mind
 							if (src.active && src.population.len == 0) //Only if this area is now empty
 								src.active = 0
+								SEND_SIGNAL(src, COMSIG_AREA_DEACTIVATED)
 
 						//Put whatever you want here. See Entering above.
 
@@ -310,10 +316,12 @@ ABSTRACT_TYPE(/area) // don't instantiate this directly dummies, use /area/space
 		sims_score = max(sims_score, 0)
 
 	proc/wake_critters()
-		if(waking_critters || !registered_critters.len) return
+		if(waking_critters || (!length(src.registered_critters) && !length(src.registered_mob_critters))) return
 		waking_critters = 1
 		for(var/obj/critter/C in src.registered_critters)
 			C.wake_from_hibernation()
+		for (var/mob/living/critter/M as anything in src.registered_mob_critters)
+			M.wake_from_hibernation()
 		waking_critters = 0
 
 	proc/calculate_area_value()
@@ -422,6 +430,7 @@ ABSTRACT_TYPE(/area) // don't instantiate this directly dummies, use /area/space
 	teleport_blocked = 2
 	force_fullbright = 1
 	expandable = 0//oh god i know some fucker would try this
+	requires_power = FALSE
 
 	Entered(atom/movable/O) // TODO: make this better and not copy n pasted from area_that_kills_you_if_you_enter_it
 		..()
@@ -444,8 +453,9 @@ ABSTRACT_TYPE(/area) // don't instantiate this directly dummies, use /area/space
 /area/titlescreen
 	name = "The Title Screen"
 	teleport_blocked = 2
-	force_fullbright = 1
+	force_fullbright = 0
 	expandable = 0
+	ambient_light = rgb(79, 164, 184)
 	// filler_turf = "/turf/unsimulated/floor/setpieces/gauntlet"
 
 /area/cavetiny
@@ -601,6 +611,18 @@ ABSTRACT_TYPE(/area/shuttle)
 
 /area/shuttle/mining/space
 	icon_state = "shuttle2"
+
+/area/shuttle/john/diner
+	icon_state = "shuttle"
+
+/area/shuttle/john/owlery
+	icon_state = "shuttle2"
+
+/area/shuttle/john/mining
+	icon_state = "shuttle2"
+
+/area/shuttle/john/grillnasium
+	icon_state = "shuttle"
 
 /area/shuttle/icebase_elevator/upper
 	icon_state = "shuttle"
@@ -914,10 +936,7 @@ ABSTRACT_TYPE(/area/adventure)
 	Entered(atom/movable/Obj,atom/OldLoc)
 		..()
 		if(ismob(Obj))
-			if (!soundSubscribers:Find(Obj))
-				soundSubscribers += Obj
-
-		return
+			soundSubscribers |= Obj
 
 	core
 		Entered(atom/movable/O)
@@ -975,6 +994,9 @@ ABSTRACT_TYPE(/area/adventure)
 /area/martian_trader
 	name ="Martian Trade Outpost"
 	sound_environment = 8
+#ifdef MAP_OVERRIDE_OSHAN
+	requires_power = FALSE
+#endif
 
 /area/abandonedmedicalship
 	name = "Abandoned Medical ship"
@@ -988,25 +1010,38 @@ ABSTRACT_TYPE(/area/adventure)
 	name ="Robot Trade Outpost"
 	icon_state ="green"
 	sound_environment = 3
+#ifdef UNDERWATER_MAP
+	requires_power = FALSE
+#endif
+
 /area/bee_trader
 	name ="Bombini's Ship"
 	icon_state ="green"
 	sound_environment = 2
+#ifdef UNDERWATER_MAP
+	requires_power = FALSE
+#endif
 
 /area/flock_trader
 	name = "Flocktrader Ship"
 	icon_state = "green"
 	sound_environment = 2
+#ifdef UNDERWATER_MAP
+	requires_power = FALSE
+#endif
 
 /area/skeleton_trader
 	name = "Skeleton Trade Outpost"
 	icon_state = "green"
 	sound_environment = 2
+#ifdef UNDERWATER_MAP
+	requires_power = FALSE
+#endif
 
 /area/fermid_hive
 	name = "Fermid Hive"
 	icon_state = "purple"
-
+	requires_power = FALSE
 
 /area/iss
 	name = "Derelict Space Station"
@@ -1014,11 +1049,19 @@ ABSTRACT_TYPE(/area/adventure)
 #ifdef SUBMARINE_MAP
 	force_fullbright = 1
 #endif
+#ifdef MAP_OVERRIDE_OSHAN
+	requires_power = FALSE
+#endif
 
+/area/spacehabitat/pool
+	name = "Pool Room"
+	icon_state = "yellow"
+	requires_power = FALSE
 
 /area/abandonedship
 	name = "Abandoned ship"
 	icon_state = "yellow"
+	requires_power = FALSE
 
 /area/spacehabitat
 	name = "Habitat Dome"
@@ -1032,14 +1075,21 @@ ABSTRACT_TYPE(/area/adventure)
 /area/salyut
 	name = "Soviet derelict"
 	icon_state = "yellow"
+	requires_power = FALSE
 
 /area/hollowasteroid/ //evilderelict.dm
 	name = "Forgotten Subterranean Wreckage"
 	icon_state = "derelict"
 	sound_loop = 'sound/ambience/spooky/Evilreaver_Ambience.ogg'
+	requires_power = FALSE
+
+
 ABSTRACT_TYPE(/area/diner)
 /area/diner
 	sound_environment = 12
+#ifdef UNDERWATER_MAP
+	requires_power = FALSE
+#endif
 
 /area/diner/hangar
 	name = "Space Diner Parking"
@@ -1102,6 +1152,7 @@ ABSTRACT_TYPE(/area/prefab)
 /area/prefab
 	name = "Prefab"
 	icon_state = "orange"
+	requires_power = FALSE
 
 /area/prefab/discount_dans_asteroid
 	name = "Discount Dan's Delivery Asteroid"
@@ -1123,9 +1174,21 @@ ABSTRACT_TYPE(/area/prefab)
 	name ="Drug Den"
 	icon_state = "purple"
 
+/area/prefab/sequestered_cloner
+	name = "Sequestered Cloner"
+
+/area/prefab/sequestered_cloner/puzzle
+	requires_power = TRUE
+
 /area/prefab/von_ricken
 	name ="Von Ricken"
 	icon_state = "blue"
+
+/area/prefab/candy_shop
+	name = "Candy Shop"
+	icon_state = "blue"
+	sound_loop = 'sound/ambience/music/shoptheme.ogg'
+	sound_environment = 2
 
 // Sealab trench areas //
 
@@ -1235,6 +1298,7 @@ ABSTRACT_TYPE(/area/prefab)
 /area/station/turret_protected/sea_crashed //dumb area pathing aRRGHHH
 	name = "Crashed Transport"
 	icon_state = "purple"
+	requires_power = FALSE
 
 /area/prefab/water_treatment
 	name = "Water Treatment Facility"
@@ -1820,6 +1884,11 @@ ABSTRACT_TYPE(/area/station/mining)
 	sound_loop = 'sound/ambience/station/underwater/sub_bridge_ambi1.ogg'
 #endif
 
+/area/station/bridge/united_command //currently only on atlas - ET
+    name = "United Command"
+    icon_state ="bridge"
+    sound_environment = 4
+
 /area/station/seaturtlebridge
 	name = "Sea Turtle Bridge"
 	icon_state = "bridge"
@@ -2017,6 +2086,9 @@ ABSTRACT_TYPE(/area/station/crew_quarters/radio)
 	name = "Clown Hole"
 	icon_state = "storage"
 	do_not_irradiate = 1
+#ifdef UNDERWATER_MAP
+	requires_power = FALSE
+#endif
 
 /area/station/crew_quarters/catering
 	name = "Catering Storage"
@@ -2146,6 +2218,7 @@ ABSTRACT_TYPE(/area/station/com_dish)
 /area/station/com_dish
 	name = "Communications Dish"
 	icon_state = "yellow"
+	requires_power = FALSE
 
 /area/station/com_dish/comdish
 	name = "Communications Dish"
@@ -2234,6 +2307,7 @@ ABSTRACT_TYPE(/area/station/engine)
 /area/station/engine/singcore
 	name = "Singularity Core"
 	icon_state = "red"
+	requires_power = FALSE
 
 /area/station/engine/eva
 	name = "Engineering EVA"
@@ -2251,6 +2325,7 @@ ABSTRACT_TYPE(/area/station/engine)
 /area/station/engine/combustion_chamber
 	name = "Combustion Chamber"
 	icon_state = "combustion_chamber"
+	requires_power = FALSE
 
 /area/station/engine/coldloop
 	name = "Cold Loop"
@@ -2445,6 +2520,7 @@ ABSTRACT_TYPE(/area/station/security)
 	icon_state = "brigcell"
 	sound_environment = 3
 	teleport_blocked = 0
+	do_not_irradiate = 1
 
 /area/station/security/brig/cell_block_control
 		name = "Cell Block Control"
@@ -2549,6 +2625,9 @@ ABSTRACT_TYPE(/area/station/security)
 	icon_state = "HOS"
 	sound_environment = 4
 	workplace = 0 //As does the hos
+
+/area/station/security/hos/horizon
+	name = "Hovel of Security"
 
 /area/station/security/visitation
 	name ="Visitation"
@@ -2902,6 +2981,7 @@ ABSTRACT_TYPE(/area/station/garden)
 	icon_state = "yellow"
 	sound_environment = 15
 	do_not_irradiate = 1
+	requires_power = FALSE
 
 /area/station/garden/aviary
 	name = "Aviary"
@@ -2926,6 +3006,7 @@ ABSTRACT_TYPE(/area/station/catwalk)
 /area/station/catwalk
 	icon_state = "yellow"
 	force_fullbright = 1
+	requires_power = FALSE
 
 /area/station/catwalk/north
 	name = "North Maintenance Catwalk"
@@ -3225,6 +3306,7 @@ ABSTRACT_TYPE(/area/station/turret_protected)
 /area/station/turret_protected/armory_outside
 	name = "Armory Outer Perimeter"
 	icon_state = "secext"
+	requires_power = FALSE
 
 // // // //  OLD AREAS THAT ARE NOT USED BUT ARE IN HERE // // // //
 
@@ -3389,6 +3471,7 @@ ABSTRACT_TYPE(/area/mining)
 
 	proc/SetName(var/name)
 		src.name = name
+		global.area_list_is_up_to_date = 0 // our area cache could no longer be accurate!
 		for(var/obj/machinery/power/apc/apc in src)
 			apc.name = "[name] APC"
 			apc.area = src
@@ -3432,6 +3515,7 @@ ABSTRACT_TYPE(/area/mining)
 		power_environ = 1
 	else
 		luminosity = 0
+	global.area_list_is_up_to_date = 0
 
 	SPAWN_DBG(1.5 SECONDS)
 		src.power_change()		// all machines set to current power level, also updates lighting icon
@@ -3445,7 +3529,6 @@ ABSTRACT_TYPE(/area/mining)
 		var/list/cameras = list()
 		for (var/obj/machinery/camera/C in orange(source, 7))
 			cameras += C
-			LAGCHECK(LAG_HIGH)
 		for_by_tcl(aiPlayer, /mob/living/silicon/ai)
 			if (state == 1)
 				aiPlayer.cancelAlarm("Power", src, source)
@@ -3465,18 +3548,16 @@ ABSTRACT_TYPE(/area/mining)
 		src.updateicon()
 		src.mouse_opacity = 0
 		var/list/cameras = list()
-		for (var/obj/machinery/firealarm/F in src)
-			F.icon_state = "fire1"
-			LAGCHECK(LAG_HIGH)
+		for_by_tcl(F, /obj/machinery/firealarm)
+			if(get_area(F) == src)
+				F.icon_state = "fire1"
 		for (var/obj/machinery/camera/C in src)
 			cameras += C
 			LAGCHECK(LAG_HIGH)
 		for_by_tcl(aiPlayer, /mob/living/silicon/ai)
 			aiPlayer.triggerAlarm("Fire", src, cameras, src)
-			LAGCHECK(LAG_HIGH)
-		for (var/obj/machinery/computer/atmosphere/alerts/a as() in machine_registry[MACHINES_ATMOSALERTS])
+		for (var/obj/machinery/computer/atmosphere/alerts/a as anything in machine_registry[MACHINES_ATMOSALERTS])
 			a.triggerAlarm("Fire", src, cameras, src)
-			LAGCHECK(LAG_HIGH)
 
 /**
   * Resets the fire alert in the area. Notifies AIs.
@@ -3487,15 +3568,13 @@ ABSTRACT_TYPE(/area/mining)
 		src.mouse_opacity = 0
 		src.updateicon()
 
-		for (var/obj/machinery/firealarm/F in src)
-			F.icon_state = "fire0"
-			LAGCHECK(LAG_HIGH)
+		for_by_tcl(F, /obj/machinery/firealarm)
+			if(get_area(F) == src)
+				F.icon_state = "fire0"
 		for_by_tcl(aiPlayer, /mob/living/silicon/ai)
 			aiPlayer.cancelAlarm("Fire", src, src)
-			LAGCHECK(LAG_HIGH)
-		for (var/obj/machinery/computer/atmosphere/alerts/a as() in machine_registry[MACHINES_ATMOSALERTS])
+		for (var/obj/machinery/computer/atmosphere/alerts/a as anything in machine_registry[MACHINES_ATMOSALERTS])
 			a.cancelAlarm("Fire", src, src)
-			LAGCHECK(LAG_HIGH)
 
 /**
   * Updates the icon of the area. Mainly used for flashing it red or blue. See: old party lights

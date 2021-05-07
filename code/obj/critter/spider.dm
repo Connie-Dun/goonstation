@@ -388,7 +388,7 @@
 	atkcarbon = 0
 	atksilicon = 0
 	venom1 = "hugs"
-	venom2 = "glitter_harmless"
+	venom2 = "sparkles"
 
 /obj/critter/spider/ice/queen/nice
 	name = "queen nice spider"
@@ -399,7 +399,7 @@
 	atkcarbon = 0
 	atksilicon = 0
 	venom1 = "hugs"
-	venom2 = "glitter_harmless"
+	venom2 = "sparkles"
 
 /obj/critter/spider/spacerachnid // you get to be in here TOO
 	name = "spacerachnid"
@@ -527,7 +527,7 @@
 		new src.item_shoes(src.loc)
 		if (prob(25))
 			new src.item_mask(src.loc)
-		gib.streak(list(NORTH, NORTHEAST, NORTHWEST))
+		gib.streak_cleanable(NORTH)
 		qdel (src)
 
 	disposing()
@@ -587,7 +587,7 @@
 		new src.item_shoes(src.loc)
 		if (prob(25))
 			new src.item_mask(src.loc)
-		gib.streak(list(NORTH, NORTHEAST, NORTHWEST))
+		gib.streak_cleanable(NORTH)
 		qdel (src)
 
 

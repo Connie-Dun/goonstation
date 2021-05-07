@@ -18,7 +18,7 @@
 	var/datum/projectile/bullet/g11/small/smallproj = new
 
 	New()
-		current_projectile = new/datum/projectile/bullet/g11
+		set_current_projectile(new/datum/projectile/bullet/g11)
 		ammo = new/obj/item/ammo/bullets/g11
 		. = ..()
 
@@ -214,7 +214,7 @@
 
 	New()
 		ammo = new/obj/item/ammo/bullets/gyrojet
-		current_projectile = new/datum/projectile/bullet/gyrojet
+		set_current_projectile(new/datum/projectile/bullet/gyrojet)
 		. = ..()
 
 /obj/item/ammo/bullets/gyrojet
@@ -261,9 +261,10 @@
 	caliber = list(0.50, 0.41, 0.357, 0.38, 0.355, 0.22) //the omnihandgun
 	has_empty_state = 1
 	gildable = 1
+	fire_animation = TRUE
 
 	New()
-		current_projectile = new/datum/projectile/bullet/deagle50cal
+		set_current_projectile(new/datum/projectile/bullet/deagle50cal)
 		ammo = new/obj/item/ammo/bullets/deagle50cal
 		. = ..()
 
@@ -273,7 +274,7 @@
 		throwforce = 50 //HEAVY pistol
 		New()
 			. = ..()
-			current_projectile = new/datum/projectile/bullet/deagle50cal/decapitation
+			set_current_projectile(new/datum/projectile/bullet/deagle50cal/decapitation)
 			ammo = new/obj/item/ammo/bullets/deagle50cal/decapitation
 
 //.50AE deagle ammo
@@ -319,7 +320,7 @@
 	icon = 'icons/obj/wizard.dmi'
 	icon_state = "scroll_seal"
 	flags = FPRINT | TABLEPASS
-	w_class = 2.0
+	w_class = W_CLASS_SMALL
 	inhand_image_icon = 'icons/mob/inhand/hand_books.dmi'
 	item_state = "paper"
 	throw_speed = 4
@@ -410,20 +411,13 @@
 		return ..()
 
 //lily's office
-obj/item/gun/reagent/syringe/lovefilled
-	ammo_reagents = list("love")
-	New()
-		. = ..()
-		src.reagents?.maximum_volume = 750
-		src.reagents.add_reagent("love", src.reagents.maximum_volume)
-
 /obj/item/storage/desk_drawer/lily/
 	spawn_contents = list(	/obj/item/reagent_containers/food/snacks/cake,\
 	/obj/item/reagent_containers/food/snacks/cake,\
 	/obj/item/reagent_containers/food/snacks/yellow_cake_uranium_cake,\
 	/obj/item/reagent_containers/food/snacks/cake/cream,\
 	/obj/item/reagent_containers/food/snacks/cake/cream,\
-	/obj/item/reagent_containers/food/snacks/cake/chocolate,\
+	/obj/item/reagent_containers/food/snacks/cake/chocolate/gateau,\
 	/obj/item/reagent_containers/food/snacks/cake,\
 )
 
@@ -466,7 +460,7 @@ obj/item/gun/reagent/syringe/lovefilled
 	item_state = "geiger"
 	flags = FPRINT | ONBELT | TABLEPASS | CONDUCT
 	throwforce = 3
-	w_class = 1.0
+	w_class = W_CLASS_TINY
 	throw_speed = 5
 	throw_range = 10
 	mats = 5
@@ -502,7 +496,7 @@ obj/item/gun/reagent/syringe/lovefilled
 		. = ..()
 
 	proc/process()
-		if(!PROC_ON_COOLDOWN(30 SECONDS))
+		if(!ON_COOLDOWN(src, "process", 30 SECONDS))
 			for (var/mob/living/M in view(src, 5))
 				if (M.bioHolder)
 					M.bioHolder.AddEffect("cold_resist", 0, 45)

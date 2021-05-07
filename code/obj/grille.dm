@@ -55,11 +55,13 @@
 		desc = "Looks like its been in this sorry state for quite some time."
 		icon_state = "grille-cut"
 		ruined = 1
+		density = 0
+		health = 0
 
-		New()
-			..()
-			damage_slashing(1000)
-			update_icon()
+		corroded
+			icon_state = "grille-corroded"
+		melted
+			icon_state = "grille-melted"
 
 	catwalk
 		name = "catwalk surface"
@@ -367,7 +369,7 @@
 					user.show_text("<b>Error:</b> Couldn't spawn window. Try again and please inform a coder if the problem persists.", "red")
 					return
 
-				S.consume_sheets(2)
+				S.change_stack_amount(-2)
 				return
 			else
 				..()

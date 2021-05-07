@@ -131,7 +131,7 @@
 
 		if(!src.donor_appearance || makeshitup || !src.donor)
 			AHead = new/datum/appearanceHolder()
-			randomize_look(AHead, 0, 0, 0, 0, 0, 0)
+			randomize_look(AHead, 0, 0, 0, 0, 0, 0, src.donor)
 			src.donor_appearance = AHead
 			src.transplanted = FALSE // just in case
 		else
@@ -540,6 +540,18 @@
 				if(HEAD_CHICKEN)
 					src.organ_name = "chicken head"
 					src.desc = "Mike would be proud."
+
+				if(HEAD_HUNTER)
+					src.organ_name = "hunter head"
+					src.desc = "Ironic, isn't it?"
+
+				if(HEAD_ITHILLID)
+					src.organ_name = "squid head"
+					src.desc = "Blub, blub."
+
+				if(HEAD_VIRTUAL)
+					src.organ_name = "virtual head"
+					src.desc = "W311, 5h17." // 1337 5p34k
 
 		src.update_icon(makeshitup = 0)	// so our head actually looks like the thing its supposed to be
 		// though if our head's a transplant, lets run it anyway, in case their hair changed or something
